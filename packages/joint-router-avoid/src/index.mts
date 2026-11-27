@@ -8,5 +8,7 @@ export type {
     SetRouteAttributesCallback,
     RouteOrigin,
     RoutingResult,
-    RouterService
+    RouterService,
+    CheckpointAttribute,
+    CheckpointSide
 } from './RouterService.mjs';

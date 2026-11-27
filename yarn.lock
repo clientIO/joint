@@ -5177,6 +5177,46 @@ __metadata:
   languageName: unknown
   linkType: soft
 
+"@joint/demo-avoid-router-checkpoints-ts@workspace:examples/avoid-router-checkpoints-ts":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-avoid-router-checkpoints-ts@workspace:examples/avoid-router-checkpoints-ts"
+  dependencies:
+    "@joint/core": "workspace:~"
+    "@joint/router-avoid": "workspace:~"
+    copy-webpack-plugin: "npm:14.0.0"
+    css-loader: "npm:^6.8.1"
+    file-loader: "npm:6.0.0"
+    sass: "npm:1.26.8"
+    sass-loader: "npm:8.0.2"
+    style-loader: "npm:^3.3.3"
+    ts-loader: "npm:^9.2.5"
+    typescript: "npm:^5.7.3"
+    webpack: "npm:5.112.0"
+    webpack-cli: "npm:6.0.1"
+    webpack-dev-server: "npm:5.2.7"
+  languageName: unknown
+  linkType: soft
+
+"@joint/demo-avoid-router-junctions-ts@workspace:examples/avoid-router-junctions-ts":
+  version: 0.0.0-use.local
+  resolution: "@joint/demo-avoid-router-junctions-ts@workspace:examples/avoid-router-junctions-ts"
+  dependencies:
+    "@joint/core": "workspace:~"
+    "@joint/router-avoid": "workspace:~"
+    copy-webpack-plugin: "npm:14.0.0"
+    css-loader: "npm:^6.8.1"
+    file-loader: "npm:6.0.0"
+    sass: "npm:1.26.8"
+    sass-loader: "npm:8.0.2"
+    style-loader: "npm:^3.3.3"
+    ts-loader: "npm:^9.2.5"
+    typescript: "npm:^5.7.3"
+    webpack: "npm:5.112.0"
+    webpack-cli: "npm:6.0.1"
+    webpack-dev-server: "npm:5.2.7"
+  languageName: unknown
+  linkType: soft
+
 "@joint/demo-avoid-router-ts@workspace:examples/avoid-router-ts":
   version: 0.0.0-use.local
   resolution: "@joint/demo-avoid-router-ts@workspace:examples/avoid-router-ts"

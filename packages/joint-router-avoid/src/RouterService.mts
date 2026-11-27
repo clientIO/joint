@@ -1,8 +1,8 @@
-import { g, mvc, alg } from '@joint/core';
+import { g, mvc, alg, routers } from '@joint/core';
 
 import type { dia, anchors } from '@joint/core';
 import type { ConnDirFlags } from 'libavoid-js';
-import type { Connector, Provider, ProviderEventMap, Shape } from './providers/Provider.mjs';
+import type { Checkpoint, Connector, Provider, ProviderEventMap, Shape } from './providers/Provider.mjs';
 
 const DEFAULT_PIN_CLASS_ID = 1;
 
@@ -132,6 +132,25 @@ export interface RouterServiceOptions {
     shapeBufferDistance?: number;
     /** Name of the `opt` flag set on `link.set()` calls made by this instance, so its own changes can be told apart from the consumer's. Defaults to `'avoidRouter'`. */
     changeFlag?: string;
+    /**
+     * Determines which tracked elements are junctions: points where several
+     * links meet (e.g. one connection between more than two elements). A
+     * junction is not an obstacle; links attached to it end at its center.
+     * A junction whose `junctionFixed` attribute is not `true` is moved to
+     * the position avoid recommends. Defaults to no junctions.
+     *
+     * @experimental Proof of concept, the API will change.
+     */
+    experimental_isJunction?: (params: { element: dia.Element }) => boolean;
+    /**
+     * Name of the link attribute holding the points the route must pass
+     * through, in order (avoid routing checkpoints), e.g. `'checkpoints'`.
+     * The router still writes the route to `vertices`. Defaults to no
+     * checkpoints.
+     *
+     * @experimental Proof of concept, the API will change.
+     */
+    experimental_checkpointsAttribute?: string;
 }
 
 /** Events emitted by a {@link RouterService}. */
@@ -171,6 +190,46 @@ export interface RouterServiceEvents_On<BaseT> {
 /** Typed `trigger()` for a {@link RouterService}, keyed to its {@link RouterServiceEventMap}. */
 export interface RouterServiceEvents_Trigger<BaseT> {
     <T extends BaseT, K extends keyof RouterServiceEventMap>(this: T, eventName: K, ...args: Parameters<RouterServiceEventMap[K]>): T;
+}
+
+/**
+ * A side of a checkpoint: where the route comes from (`arrival`) or goes
+ * to (`departure`).
+ *
+ * @experimental Proof of concept, the API will change.
+ */
+export type CheckpointSide = 'top' | 'right' | 'bottom' | 'left';
+
+/**
+ * A point of the checkpoints attribute (see
+ * {@link RouterServiceOptions.experimental_checkpointsAttribute}).
+ *
+ * @experimental Proof of concept, the API will change.
+ */
+export interface CheckpointAttribute extends dia.Point {
+    /** The side(s) the route may come from. Any if not set. */
+    arrival?: CheckpointSide | CheckpointSide[];
+    /** The side(s) the route may leave toward. Any if not set. */
+    departure?: CheckpointSide | CheckpointSide[];
+}
+
+/**
+ * The avoid `ConnDirFlags` for checkpoint sides.
+ *
+ * Unlike the directions of shape pins, avoid reads a checkpoint's vertical
+ * directions with the y-axis pointing up: `ConnDirUp` (1) is the side with
+ * the larger y (the bottom on the screen). Observed with libavoid-js
+ * 0.5.0 (Aksem/libavoid-js#49).
+ */
+const CHECKPOINT_DIRECTIONS: Record<CheckpointSide, number> = {
+    top: 2,
+    bottom: 1,
+    left: 4,
+    right: 8,
+};
+
+function getCheckpointDirections(sides: CheckpointSide | CheckpointSide[]): number {
+    return (Array.isArray(sides) ? sides : [sides]).reduce((flags, side) => flags | (CHECKPOINT_DIRECTIONS[side] ?? 0), 0);
 }
 
 /**
@@ -268,6 +327,7 @@ export class RouterService {
         };
 
         this.provider.on('connector:changed', (linkId, points, isValid) => this.routeLink(linkId, points, isValid));
+        this.provider.on('junction:changed', (junctionId, position) => this.moveJunction(junctionId, position));
         this.provider.on('processed', () => this.trigger('idle'));
     }
 
@@ -322,6 +382,20 @@ export class RouterService {
             'change:size': (element: dia.Element, _size: unknown, opt: dia.Cell.Options) => this.onElementGeometryChanged(element, opt),
             reset: () => this.backgroundSync(),
         });
+
+        if (this.options.experimental_isJunction) {
+            // Fixing or freeing a junction changes how avoid treats it.
+            listener.listenTo(this.graph, 'change:junctionFixed', (cell: dia.Cell, _value: unknown, opt: dia.Cell.Options) => {
+                if (cell.isElement()) this.onElementGeometryChanged(cell, opt);
+            });
+        }
+
+        const { experimental_checkpointsAttribute: checkpointsAttribute } = this.options;
+        if (checkpointsAttribute) {
+            listener.listenTo(this.graph, `change:${checkpointsAttribute}`, (cell: dia.Cell, _value: unknown, opt: dia.Cell.Options) => {
+                if (cell.isLink()) this.onLinkEndChanged(cell, opt);
+            });
+        }
 
         this.graphListener = listener;
 
@@ -618,6 +692,16 @@ export class RouterService {
      * @returns The avoid shape representing `element`.
      */
     private getAvoidShape(element: dia.Element): Shape {
+        if (this.options.experimental_isJunction?.({ element })) {
+            return {
+                id: element.id,
+                bbox: element.getBBox(),
+                pins: [],
+                junction: true,
+                fixed: !!element.get('junctionFixed')
+            };
+        }
+
         const pins = [];
 
         pins.push({
@@ -678,13 +762,40 @@ export class RouterService {
                 : DEFAULT_PIN_CLASS_ID;
         }
 
+        const { experimental_checkpointsAttribute: checkpointsAttribute } = this.options;
+        const checkpoints: Checkpoint[] = checkpointsAttribute ? this.getCheckpoints(link, checkpointsAttribute) : [];
+
         return {
             id: link.id,
             sourceId,
             sourcePinId,
             targetId,
-            targetPinId
+            targetPinId,
+            checkpoints
         };
+    }
+
+    /**
+     * Returns the link's checkpoints, leaving out those inside an obstacle:
+     * avoid would route the link through the obstacle to reach them.
+     *
+     * @param link - The link whose checkpoints to read.
+     * @param attribute - The attribute holding the checkpoints.
+     * @returns The checkpoints avoid can route through.
+     * @experimental Proof of concept, the API will change.
+     */
+    private getCheckpoints(link: dia.Link, attribute: string): Checkpoint[] {
+        const points: CheckpointAttribute[] = link.get(attribute) ?? [];
+        return points.filter((point) => {
+            return !this.graph.findElementsAtPoint(point).some((element) => {
+                return this.trackElement({ element }) && !this.options.experimental_isJunction?.({ element });
+            });
+        }).map(({ x, y, arrival, departure }) => {
+            const checkpoint: Checkpoint = { x, y };
+            if (arrival) checkpoint.arrival = getCheckpointDirections(arrival);
+            if (departure) checkpoint.departure = getCheckpointDirections(departure);
+            return checkpoint;
+        });
     }
 
     /**
@@ -734,12 +845,17 @@ export class RouterService {
      * @param isValid - `false` if avoid found no route and fell back to a straight line between the ends.
      */
     private routeLink(linkId: dia.Cell.ID, points: dia.Point[], isValid: boolean): void {
+        // `destroy()` may have been called from a consumer callback while the
+        // pass that produced this route was still running (the main-thread
+        // provider's `destroy()` does not stop the engine mid-transaction);
+        // `destroy()` already reported those links as `link:routing:cancelled`.
+        if (this.destroyed) return;
         const link = this.graph.getCell(linkId) as dia.Link | undefined;
         // The link may have been removed from the graph while avoid was still
         // computing its route or became unroutable, so check for existence and validity before applying the route.
         if (!link || !this.provider.hasConnector(linkId)) return;
 
-        const fallback = !isValid || !points || !this.isRouteValid(points, link);
+        const fallback = !isValid || !points || !this.isRouteValid(points, link) || this.skipsCheckpoint(link, points);
 
         if (fallback) {
             this.applyFallbackRoute(link);
@@ -747,6 +863,49 @@ export class RouterService {
         }
 
         this.applyRoute(link, points);
+    }
+
+    /**
+     * Whether the route avoid computed misses one of the link's checkpoints.
+     * Avoid drops a checkpoint it cannot reach in its directions, and still
+     * reports the route as valid (`ConnRef.hasValidRoute()`).
+     *
+     * @param link - The routed link.
+     * @param points - The route computed by avoid.
+     * @returns `true` if a checkpoint is not on the route.
+     * @experimental Proof of concept, the API will change.
+     */
+    private skipsCheckpoint(link: dia.Link, points: dia.Point[]): boolean {
+        const { experimental_checkpointsAttribute: checkpointsAttribute } = this.options;
+        if (!checkpointsAttribute) return false;
+        const checkpoints = this.getCheckpoints(link, checkpointsAttribute);
+        if (checkpoints.length === 0) return false;
+        const route = new g.Polyline(points.map(({ x, y }) => new g.Point(x, y)));
+        return checkpoints.some(({ x, y }) => route.closestPoint({ x, y })!.distance({ x, y }) > 1);
+    }
+
+    /**
+     * Moves a junction element so its center is at `position`, the position
+     * avoid recommends for it. The change is flagged with {@link changeFlag},
+     * so it does not reroute the links again.
+     *
+     * @param junctionId - Id of the junction element.
+     * @param position - The new center of the junction.
+     * @experimental Proof of concept, the API will change.
+     */
+    private moveJunction(junctionId: dia.Cell.ID, position: dia.Point): void {
+        if (this.destroyed) return;
+        const element = this.graph.getCell(junctionId);
+        if (!element || !element.isElement()) return;
+        const { width, height } = element.size();
+        // Like a route, a junction move must not be taken for a consumer
+        // change, even when a listener reacts to it with its own write.
+        this.applyingRoute = true;
+        try {
+            element.position(position.x - width / 2, position.y - height / 2, { [this.changeFlag]: true });
+        } finally {
+            this.applyingRoute = false;
+        }
     }
 
     /**
@@ -904,7 +1063,52 @@ export class RouterService {
             margin: this.options.shapeBufferDistance ?? 0,
         };
 
+        const { experimental_checkpointsAttribute: checkpointsAttribute } = this.options;
+        const checkpoints = checkpointsAttribute ? this.getCheckpoints(link, checkpointsAttribute) : [];
+        if (checkpoints.length > 0) {
+            return this.getFallbackRouteThroughCheckpoints(link, checkpoints);
+        }
+
         return alg.rightAnglePath(source, target);
+    }
+
+    /**
+     * Computes the `rightAngle` fallback path for `link` through its
+     * checkpoints, in order. The checkpoint directions are ignored.
+     *
+     * TODO: POC hack. The vertex handling lives in the `rightAngle` router,
+     * which reads the link's geometry from a `dia.LinkView` - and the router
+     * service has no paper. Here it gets a stub view built from the models
+     * (`useModelGeometry`). Move the vertex handling into
+     * `alg.rightAnglePath()` (e.g. a `vertices` option, with the ends' sides
+     * resolved by the caller) and call that instead. Let each vertex take
+     * optional directions too (the sides the path arrives from and leaves
+     * toward), so the fallback honors the checkpoint directions.
+     * `alg.rightAnglePath()` is not released yet, so its signature can
+     * still change.
+     *
+     * @param link - The link to compute a fallback route for.
+     * @param checkpoints - The checkpoints the route passes through.
+     * @returns The fallback route's vertices.
+     * @experimental Proof of concept, the API will change.
+     */
+    private getFallbackRouteThroughCheckpoints(link: dia.Link, checkpoints: dia.Point[]): dia.Point[] {
+        const sourceElement = link.getSourceElement();
+        const targetElement = link.getTargetElement();
+        const stubLinkView = {
+            model: link,
+            sourceView: sourceElement ? { model: sourceElement } : null,
+            sourceAnchor: link.getSourcePoint(),
+            sourceBBox: sourceElement?.getBBox({ rotate: true }),
+            targetView: targetElement ? { model: targetElement } : null,
+            targetAnchor: link.getTargetPoint(),
+            targetBBox: targetElement?.getBBox({ rotate: true }),
+        } as unknown as dia.LinkView;
+        return routers.rightAngle(checkpoints.map(({ x, y }) => ({ x, y })), {
+            margin: this.options.shapeBufferDistance ?? 0,
+            useVertices: true,
+            useModelGeometry: true,
+        }, stubLinkView);
     }
 
     /**
@@ -915,7 +1119,7 @@ export class RouterService {
      *
      * @param route - The route computed by avoid, including the source and target points.
      * @param link - The link the route was computed for.
-     * @returns `true` if the route should be trusted and applied as-is.
+     * @returns `true` if the route should be applied.
      */
     private isRouteValid(
         route: dia.Point[],
@@ -941,12 +1145,16 @@ export class RouterService {
         const sourcePoint = route[0]!;
         const targetPoint = route[route.length - 1]!;
 
-        if (sourcePortId && targetElement!.getBBox().inflate(this.options.shapeBufferDistance).containsPoint(sourcePoint)) {
+        // A junction is a point, not an obstacle with a buffer around it, so a
+        // port right next to it is fine.
+        const isJunction = (element: dia.Element) => !!this.options.experimental_isJunction?.({ element });
+
+        if (sourcePortId && !isJunction(targetElement) && targetElement.getBBox().inflate(this.options.shapeBufferDistance).containsPoint(sourcePoint)) {
             // The source point is inside the target element.
             return false;
         }
 
-        if (targetPortId && sourceElement!.getBBox().inflate(this.options.shapeBufferDistance).containsPoint(targetPoint)) {
+        if (targetPortId && !isJunction(sourceElement) && sourceElement.getBBox().inflate(this.options.shapeBufferDistance).containsPoint(targetPoint)) {
             // The target point is inside the source element.
             return false;
         }
@@ -1012,6 +1220,12 @@ export class RouterService {
      * @returns The offset from the port's (or element's center's) position to `point`.
      */
     private getLinkAnchorDelta(element: dia.Element, portId: string | null, point: dia.Point): dia.Point {
+        if (this.options.experimental_isJunction?.({ element })) {
+            // Links end at the junction's center: avoid routes to the
+            // junction's recommended position, where `junction:changed`
+            // moves the element.
+            return new g.Point(0, 0);
+        }
         let anchorPosition: dia.Point;
         if (portId) {
             const port = element.getPort(portId);

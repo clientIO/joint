@@ -60,6 +60,18 @@ export interface InitAvoidOptions {
     worker?: boolean | WorkerOptions;
     /** Path to the avoid WASM binary. Defaults to the library's own resolution of the asset. */
     libavoidFilePath?: string;
+    /**
+     * Determines which tracked elements are junctions (see {@link RouterServiceOptions.experimental_isJunction}).
+     *
+     * @experimental Proof of concept, the API will change.
+     */
+    experimental_isJunction?: RouterServiceOptions['experimental_isJunction'];
+    /**
+     * Name of the link attribute holding the route's checkpoints (see {@link RouterServiceOptions.experimental_checkpointsAttribute}).
+     *
+     * @experimental Proof of concept, the API will change.
+     */
+    experimental_checkpointsAttribute?: string;
 }
 
 /**
@@ -114,6 +126,8 @@ export async function initAvoidRouter(graph: dia.Graph, options: InitAvoidOption
         interceptUnroutableLink: options.interceptUnroutableLink,
         setRouteAttributes: options.setRouteAttributes,
         changeFlag: options.changeFlag,
+        experimental_isJunction: options.experimental_isJunction,
+        experimental_checkpointsAttribute: options.experimental_checkpointsAttribute,
     };
 
     const routerService = new RouterService(

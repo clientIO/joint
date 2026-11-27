@@ -39,6 +39,21 @@ export interface Shape {
     bbox: dia.BBox;
     /** Connection pins available on this shape. */
     pins: Pin[];
+    /**
+     * Whether the element is an avoid junction (a point where several
+     * connectors meet) at the center of `bbox`, rather than an obstacle.
+     * `pins` are ignored for a junction.
+     *
+     * @experimental Proof of concept, the API will change.
+     */
+    junction?: boolean;
+    /**
+     * Whether the junction keeps its position. A junction that is not fixed
+     * is moved to the position avoid recommends (see `junction:changed`).
+     *
+     * @experimental Proof of concept, the API will change.
+     */
+    fixed?: boolean;
 }
 
 /**
@@ -56,6 +71,27 @@ export interface Connector {
     targetId?: dia.Cell.ID;
     /** Id of the pin on the target shape that the connector attaches to. */
     targetPinId?: number;
+    /**
+     * Points the route must pass through, in order, with the directions
+     * (`ConnDirFlags`) the route may arrive and leave in.
+     *
+     * @experimental Proof of concept, the API will change.
+     */
+    checkpoints?: Checkpoint[];
+}
+
+/**
+ * A point the route must pass through (avoid `CheckpointLike`).
+ *
+ * @experimental Proof of concept, the API will change.
+ */
+export interface Checkpoint {
+    x: number;
+    y: number;
+    /** Directions (`ConnDirFlags`) the route may arrive in. Any if not set. */
+    arrival?: number;
+    /** Directions (`ConnDirFlags`) the route may leave in. Any if not set. */
+    departure?: number;
 }
 
 /** Events emitted by a {@link Provider}. */
@@ -70,6 +106,14 @@ export interface ProviderEventMap {
     'connector:changed': (connectorId: dia.Cell.ID, points: dia.Point[], isValid: boolean) => void;
     /** Emitted whenever the provider has finished processing current changes. */
     'processed': () => void;
+    /**
+     * Emitted when avoid moved a junction that is not fixed to a better position.
+     *
+     * @param junctionId - Id of the junction (the JointJS element).
+     * @param position - The new center of the junction.
+     * @experimental Proof of concept, the API will change.
+     */
+    'junction:changed': (junctionId: dia.Cell.ID, position: dia.Point) => void;
 }
 
 /** Typed `on()` for a {@link Provider}, keyed to its {@link ProviderEventMap}. */

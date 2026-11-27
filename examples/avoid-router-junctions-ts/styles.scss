@@ -1,0 +1,27 @@
+body {
+    width: 100vw;
+    height: 100vh;
+    margin: 0;
+    display: flex;
+    flex-direction: column;
+    font-family: sans-serif;
+}
+
+.hint {
+    padding: 8px 16px;
+    color: #464454;
+    font-size: 14px;
+    border-bottom: 1px solid #E2E2E2;
+}
+
+.canvas {
+    display: flex;
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+}
+
+.option {
+    display: block;
+    margin-top: 6px;
+}

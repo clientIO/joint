@@ -2,7 +2,7 @@ import { util } from '@joint/core';
 import { AvoidLib } from 'libavoid-js';
 import type { dia } from '@joint/core';
 import type { Connector, Shape } from './Provider.mjs';
-import type { Avoid as AvoidInstance, Router as AvoidRouter, ConnRef, ShapeRef } from 'libavoid-js';
+import type { Avoid as AvoidInstance, Router as AvoidRouter, ConnEndLike, ConnRef, JunctionRef, ShapeRef } from 'libavoid-js';
 import type { WorkerProviderOptions } from './WorkerProvider.mjs';
 
 /** Request sent once, right after the Worker is spawned, to load and configure the avoid router. */
@@ -84,6 +84,19 @@ export interface WorkerProcessedResponse {
     type: 'processed';
 }
 
+/**
+ * Response posted when avoid moved a junction that is not fixed to a better position.
+ *
+ * @experimental Proof of concept, the API will change.
+ */
+export interface WorkerJunctionChangedResponse {
+    type: 'junctionChanged';
+    /** Id of the junction (the JointJS element). */
+    junctionId: dia.Cell.ID;
+    /** The new center of the junction. */
+    position: dia.Point;
+}
+
 /** Response posted when the Worker fails to initialize (e.g. the avoid WASM module cannot be loaded). */
 export interface WorkerErrorResponse {
     type: 'error';
@@ -92,11 +105,17 @@ export interface WorkerErrorResponse {
 }
 
 /** Any response this Worker may post back to its {@link WorkerProvider}. */
-export type WorkerResponse = WorkerReadyResponse | WorkerConnectorChangedResponse | WorkerProcessedResponse | WorkerErrorResponse;
+export type WorkerResponse = WorkerReadyResponse | WorkerConnectorChangedResponse | WorkerProcessedResponse | WorkerJunctionChangedResponse | WorkerErrorResponse;
 let avoidInstance: AvoidInstance;
 let avoidRouter: AvoidRouter;
 const shapeRefs: Record<string, ShapeRef> = {};
 const connectorRefs: Record<string, ConnRef> = {};
+/**
+ * Avoid junction references, keyed by JointJS element id.
+ *
+ * @experimental Proof of concept, the API will change.
+ */
+const junctionRefs: Record<string, JunctionRef> = {};
 /**
  * Ids of the shapes added since the last {@link processTransaction} call.
  * Deleting a shape in the same transaction that added it throws, and a
@@ -111,6 +130,69 @@ let updateDebounceTime: number = 100;
 function processTransaction(): void {
     avoidRouter.processTransaction();
     shapesAddedInTransaction.clear();
+    // A junction move takes effect at the next pass: route again until the
+    // junctions settle, so every route ends at the final position.
+    const movedJunctions = new Map<string, dia.Point>();
+    for (let pass = 0; moveJunctionsToRecommendedPositions(movedJunctions); pass++) {
+        // Out of passes: the junctions are still moving. The routes of the
+        // last pass already end at the recommended positions, so the move
+        // above is only reported (avoid applies it at the next transaction).
+        if (pass === MAX_JUNCTION_PASSES) break;
+        avoidRouter.processTransaction();
+    }
+    // Junctions first: a link's route (or its fallback route) is applied to
+    // the junction's final position.
+    movedJunctions.forEach((position, junctionId) => {
+        postResponse({ type: 'junctionChanged', junctionId, position });
+    });
+    changedRoutes.forEach(({ points, isValid }, connectorId) => {
+        postResponse({ type: 'connectorChanged', connectorId, points, isValid });
+    });
+    changedRoutes.clear();
+}
+
+/**
+ * The most extra passes a transaction runs to let moved junctions settle.
+ *
+ * @experimental Proof of concept, the API will change.
+ */
+const MAX_JUNCTION_PASSES = 3;
+
+/**
+ * Moves every junction that is not fixed to the position avoid recommends
+ * for it. The move takes effect at the next pass.
+ *
+ * @param movedJunctions - Collects the new position of each moved junction, keyed by its id.
+ * @returns Whether any junction moved.
+ * @experimental Proof of concept, the API will change.
+ */
+function moveJunctionsToRecommendedPositions(movedJunctions: Map<string, dia.Point>): boolean {
+    let moved = false;
+    Object.keys(junctionRefs).forEach((junctionId) => {
+        const junctionRef = junctionRefs[junctionId]!;
+        if (junctionRef.positionFixed()) return;
+        const recommended = junctionRef.recommendedPosition();
+        const current = junctionRef.position();
+        if (recommended.x === current.x && recommended.y === current.y) return;
+        avoidRouter.moveJunction(junctionRef, recommended);
+        movedJunctions.set(junctionId, { x: recommended.x, y: recommended.y });
+        moved = true;
+    });
+    return moved;
+}
+
+/**
+ * Returns the avoid connector end for a connector's end: the junction, or
+ * the pin of the shape.
+ *
+ * @param id - Id of the shape or junction.
+ * @param pinId - Id of the pin on the shape; ignored for a junction.
+ * @returns The avoid connector end.
+ */
+function getConnEnd(id: dia.Cell.ID, pinId: number): ConnEndLike {
+    const junctionRef = junctionRefs[id];
+    if (junctionRef) return { junction: junctionRef };
+    return { shape: shapeRefs[id]!, pin: pinId };
 }
 /**
  * Drops every `updateConnector` request that is followed by a
@@ -173,9 +255,16 @@ function postResponse(response: WorkerResponse): void {
  * @param connRef - The avoid connector whose route changed.
  */
 function onAvoidConnectorChanged(connectorId: dia.Cell.ID, connRef: ConnRef): void {
-    const points: dia.Point[] = connRef.displayRoute().map(({ x, y }) => ({ x, y }));
-    postResponse({ type: 'connectorChanged', connectorId, points, isValid: connRef.hasValidRoute() });
+    // Posted once the pass is over (see `processTransaction()`), so a
+    // connector routed again while the junctions settle is posted once.
+    changedRoutes.set(connectorId, {
+        points: connRef.displayRoute().map(({ x, y }) => ({ x, y })),
+        isValid: connRef.hasValidRoute()
+    });
 }
+
+/** The routes avoid computed during the current `processTransaction()`, keyed by link id. */
+const changedRoutes = new Map<dia.Cell.ID, { points: dia.Point[], isValid: boolean }>();
 
 /**
  * Creates and configures a new avoid `Router` instance.
@@ -238,6 +327,14 @@ async function handleInit(options: WorkerProviderOptions): Promise<void> {
  * @param shape - The shape to create or update.
  */
 function handleUpdateShape(shape: Shape): void {
+    if (shape.junction) {
+        handleUpdateJunction(shape);
+        return;
+    }
+    if (junctionRefs[shape.id]) {
+        // The element is no longer a junction.
+        handleDeleteShape(shape.id);
+    }
     const { x, y, width, height } = shape.bbox;
     const shapeRect = { x, y, width, height };
 
@@ -262,6 +359,31 @@ function handleUpdateShape(shape: Shape): void {
         });
         pinRef.setExclusive(false);
     });
+}
+
+/**
+ * Creates or updates the avoid junction for a JointJS element: a point at
+ * the center of the element where several connectors meet.
+ *
+ * @param shape - The junction to create or update (`shape.junction` is `true`).
+ * @experimental Proof of concept, the API will change.
+ */
+function handleUpdateJunction(shape: Shape): void {
+    if (shapeRefs[shape.id]) {
+        // The element became a junction.
+        handleDeleteShape(shape.id);
+    }
+    const { x, y, width, height } = shape.bbox;
+    const center = { x: x + width / 2, y: y + height / 2 };
+    let junctionRef = junctionRefs[shape.id];
+    if (junctionRef) {
+        avoidRouter.moveJunction(junctionRef, center);
+    } else {
+        junctionRef = avoidRouter.addJunction(center);
+        junctionRefs[shape.id] = junctionRef;
+        shapesAddedInTransaction.add(String(shape.id));
+    }
+    junctionRef.setPositionFixed(!!shape.fixed);
 }
 
 /**
@@ -292,17 +414,15 @@ function handleUpdateConnector(connector: Connector): void {
         return;
     }
 
-    const sourceShapeRef = shapeRefs[connector.sourceId];
-    const targetShapeRef = shapeRefs[connector.targetId];
-
-    const sourceConnEnd = { shape: sourceShapeRef!, pin: connector.sourcePinId };
-    const targetConnEnd = { shape: targetShapeRef!, pin: connector.targetPinId };
+    const sourceConnEnd = getConnEnd(connector.sourceId, connector.sourcePinId);
+    const targetConnEnd = getConnEnd(connector.targetId, connector.targetPinId);
 
     const existingConnRef = connectorRefs[connector.id];
     if (existingConnRef) {
         // It was already created, we just update the endpoints.
         existingConnRef.setSource(sourceConnEnd);
         existingConnRef.setDest(targetConnEnd);
+        existingConnRef.setRoutingCheckpoints(connector.checkpoints ?? []);
         return;
     }
 
@@ -313,6 +433,7 @@ function handleUpdateConnector(connector: Connector): void {
     const connRef = avoidRouter.addConnector(sourceConnEnd, targetConnEnd);
     connectorRefs[connector.id] = connRef;
     connRef.setCallback(() => onAvoidConnectorChanged(connector.id, connRef));
+    if (connector.checkpoints?.length) connRef.setRoutingCheckpoints(connector.checkpoints);
 }
 
 /**
@@ -321,6 +442,14 @@ function handleUpdateConnector(connector: Connector): void {
  * @param shapeId - Id of the shape to remove.
  */
 function handleDeleteShape(shapeId: dia.Cell.ID): void {
+    const junctionRef = junctionRefs[shapeId];
+    if (junctionRef) {
+        // Like a shape, a junction cannot be deleted in the transaction that added it.
+        if (shapesAddedInTransaction.has(String(shapeId))) processTransaction();
+        avoidRouter.deleteJunction(junctionRef);
+        delete junctionRefs[shapeId];
+        return;
+    }
     const shapeRef = shapeRefs[shapeId];
     if (!shapeRef) return;
     if (shapesAddedInTransaction.has(String(shapeId))) {
@@ -347,6 +476,9 @@ function handleSync(shapes: Shape[], connectors: Connector[]): void {
     });
     Object.keys(shapeRefs).forEach((shapeId) => {
         handleDeleteShape(shapeId);
+    });
+    Object.keys(junctionRefs).forEach((junctionId) => {
+        handleDeleteShape(junctionId);
     });
 
     shapes.forEach((shape) => handleUpdateShape(shape));
