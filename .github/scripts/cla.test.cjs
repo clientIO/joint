@@ -12,6 +12,8 @@ const OTHER = { id: 3, login: 'other', type: 'User' };
 const BOT = { id: 4, login: 'dependabot[bot]', type: 'Bot' };
 const ACTIONS_BOT = { id: 5, login: 'github-actions[bot]', type: 'Bot' };
 const OTHER_BOT = { id: 6, login: 'some-app[bot]', type: 'Bot' };
+const ORG = { id: 1000, login: OWNER, type: 'Organization' };
+const AGREEMENT_SHA = 'agreement-blob';
 
 function httpError(status) {
     return Object.assign(new Error(`HTTP ${status}`), { status });
@@ -37,6 +39,8 @@ class FakeGitHub {
         this.conflictsToRaise = 0;
         this.collaboratorError = null;
         this.isLargeFile = false;
+        // Called on every read of the comments: what happens meanwhile.
+        this.onListComments = null;
         const fake = this;
         this.rest = {
             pulls: {
@@ -70,7 +74,12 @@ class FakeGitHub {
                     return { status: 204 };
                 },
                 async getContent({ path, ref }) {
-                    const file = fake.files.get(`${ref}:${path}`);
+                    assert.ok(ref.startsWith('refs/heads/'), 'reads a branch by its full name');
+                    const branch = ref.replace('refs/heads/', '');
+                    if (branch === 'master' && path === 'CLA.md') {
+                        return { data: { content: '', encoding: 'base64', sha: AGREEMENT_SHA } };
+                    }
+                    const file = fake.files.get(`${branch}:${path}`);
                     if (!file) {
                         throw httpError(404);
                     }
@@ -132,6 +141,7 @@ class FakeGitHub {
             },
             issues: {
                 async listComments({ issue_number }) {
+                    await fake.onListComments?.(issue_number);
                     return { data: fake.comments.filter((comment) => comment.issue === issue_number) };
                 },
                 async createComment({ issue_number, body }) {
@@ -165,18 +175,19 @@ class FakeGitHub {
     }
 
     /** A pull request opened by `opener` with commits by `authors` (GitHub accounts of their emails). */
-    addPull(number, opener, { base = 'master', authors = [opener], unlinked = 0, commitCount } = {}) {
-        const sha = `head-${number}`;
+    addPull(number, opener, { base = 'master', authors = [opener], unlinked = 0, commitCount, headOwner = opener } = {}) {
         const commits = [
             ...authors.map((user, index) => ({ sha: `${number}-c${index}-0000000`, author: user, commit: { author: { name: user.login } } })),
             ...Array.from({ length: unlinked }, (_, index) => ({ sha: `${number}-u${index}-1111111`, author: null, commit: { author: { name: '@everyone [x](https://evil.example)' } } })),
         ];
+        // The head is the last commit, as on GitHub.
+        const sha = commits.at(-1).sha;
         const pull = {
             number,
             state: 'open',
             user: opener,
-            base: { ref: base },
-            head: { sha, ref: `branch-${number}`, user: { login: opener.login } },
+            base: { ref: base, repo: { owner: ORG } },
+            head: { sha, ref: `branch-${number}`, user: { login: headOwner.login }, repo: { owner: headOwner } },
             commits: commitCount ?? commits.length,
         };
         this.pulls.set(number, pull);
@@ -194,7 +205,7 @@ class FakeGitHub {
     }
 }
 
-const core = { info() {} };
+const core = { info() {}, error() {} };
 const base = { repo: { owner: OWNER, repo: REPO }, serverUrl: 'https://github.com', runId: 7 };
 
 function runContext(fake, number, { listedPulls = [] } = {}) {
@@ -246,7 +257,7 @@ describe('the CLA check of a pull request', () => {
         assert.equal(fake.lastStatus(1).target_url, comment.html_url);
     });
 
-    it('checks a fork pull request found by its head, read whole', async () => {
+    it('fails closed on a pull request of more than 250 commits, read whole after the lookup by its head', async () => {
         const fake = new FakeGitHub();
         fake.addPull(1, OUTSIDER, { authors: Array(300).fill(TEAM), commitCount: 300 });
         await check(fake, 1);
@@ -285,6 +296,8 @@ describe('the CLA check of a pull request', () => {
             id: OUTSIDER.id,
             login: OUTSIDER.login,
             version: cla.AGREEMENT_VERSION,
+            agreement: `CLA.md@${AGREEMENT_SHA}`,
+            sentence: cla.SENTENCE,
             signedAt: '2026-11-27T10:05:00Z',
             pullRequest: 1,
             commentId: 42,
@@ -473,6 +486,143 @@ describe('the CLA check of a pull request', () => {
         fake.collaboratorError = 403;
         await assert.rejects(check(fake, 1), { status: 403 });
         assert.deepEqual(fake.statuses.map((status) => status.state), ['error']);
+    });
+
+    it('asks the owner of the fork that holds the head branch', async () => {
+        const fake = new FakeGitHub();
+        // A team member opens a pull request from an outsider's fork, whose commits carry the team member's email.
+        fake.addPull(1, TEAM, { authors: [TEAM], headOwner: OUTSIDER });
+        await check(fake, 1);
+        assert.equal(fake.lastStatus(1).state, 'failure');
+        assert.ok(fake.checkComment(1).body.includes('@outsider'));
+        await sign(fake, 1, OUTSIDER);
+        assert.equal(fake.lastStatus(1).state, 'success');
+    });
+
+    it('does not ask the organization of a branch in this repository, or of an organization fork', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, TEAM, { headOwner: ORG });
+        fake.addPull(2, TEAM, { headOwner: { id: 2000, login: 'some-org', type: 'Organization' } });
+        await check(fake, 1);
+        await check(fake, 2);
+        assert.equal(fake.lastStatus(1).state, 'success');
+        assert.equal(fake.lastStatus(2).state, 'success');
+    });
+
+    it('sets no status when the commits read are not of the head checked', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, TEAM);
+        // Force-pushed between reading the pull request and its commits.
+        fake.commits.set(1, [{ sha: 'pushed-later', author: OUTSIDER }]);
+        await check(fake, 1);
+        assert.equal(fake.statuses.length, 0);
+    });
+
+    it('does not report an agreement recorded while it commented as missing', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, OUTSIDER);
+        fake.onListComments = async () => {
+            fake.onListComments = null;
+            await sign(fake, 1, OUTSIDER);
+        };
+        await check(fake, 1);
+        assert.equal(fake.lastStatus(1).state, 'success');
+        assert.ok(fake.checkComment(1).body.includes('Thank you! Everyone'));
+    });
+
+    it('reports nothing when the pull request was pushed to before its commits were read', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, OUTSIDER, { authors: [OUTSIDER, OUTSIDER, OUTSIDER] });
+        // Force-pushed to a single commit: fewer commits than counted, none of them the head.
+        fake.commits.set(1, [{ sha: 'pushed-later', author: OUTSIDER }]);
+        await check(fake, 1);
+        assert.equal(fake.statuses.length, 0);
+        assert.equal(fake.comments.length, 0);
+    });
+
+    it('does not comment for a head the pull request has left while it was checked', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, OUTSIDER);
+        const realListCommits = fake.rest.pulls.listCommits;
+        fake.rest.pulls.listCommits = async (params) => {
+            const listedCommits = await realListCommits(params);
+            fake.pulls.get(1).head.sha = 'pushed-later';
+            return listedCommits;
+        };
+        await check(fake, 1);
+        assert.equal(fake.comments.length, 0);
+        assert.equal(fake.statuses.length, 0);
+    });
+
+    it('sets no status for a head the pull request has left while it commented', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, TEAM);
+        fake.onListComments = async () => {
+            fake.pulls.get(1).head.sha = 'pushed-later';
+        };
+        await check(fake, 1);
+        assert.equal(fake.statuses.length, 0);
+    });
+
+    it('fails closed, recording nothing, when the agreement file is missing', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, OUTSIDER);
+        const realGetContent = fake.rest.repos.getContent;
+        fake.rest.repos.getContent = async (params) => {
+            if (params.path === 'CLA.md') {
+                throw httpError(404);
+            }
+            return realGetContent(params);
+        };
+        await assert.rejects(sign(fake, 1, OUTSIDER), { status: 404 });
+        assert.deepEqual(fake.readSignatureList(), []);
+        assert.notEqual(fake.lastStatus(1)?.state, 'success');
+    });
+
+    it('sets no status for a base the pull request has left meanwhile', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, TEAM);
+        fake.onListComments = async () => {
+            fake.pulls.get(1).base.ref = 'dev';
+        };
+        await check(fake, 1);
+        assert.equal(fake.statuses.length, 0);
+    });
+
+    it('checks every other pull request of the signer when one of them fails', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, OUTSIDER);
+        fake.addPull(2, OUTSIDER);
+        fake.addPull(3, OUTSIDER);
+        const realGet = fake.rest.pulls.get;
+        fake.rest.pulls.get = async (params) => {
+            if (params.pull_number === 2) {
+                throw httpError(502);
+            }
+            return realGet(params);
+        };
+        await assert.rejects(sign(fake, 1, OUTSIDER), { status: 502 });
+        assert.equal(fake.lastStatus(1).state, 'success');
+        assert.equal(fake.lastStatus(3).state, 'success');
+    });
+
+    it('keeps the original error when the error status cannot be set either', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, OUTSIDER);
+        fake.collaboratorError = 403;
+        fake.rest.repos.createCommitStatus = async () => {
+            throw httpError(500);
+        };
+        await assert.rejects(check(fake, 1), { status: 403 });
+    });
+
+    it('checks nothing when the fork of the head was deleted', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, OUTSIDER);
+        const context = runContext(fake, 1);
+        context.payload.workflow_run.head_repository = null;
+        assert.deepEqual(await cla.checkFromWorkflowRun({ github: fake, context, core }), []);
+        assert.equal(fake.statuses.length, 0);
     });
 
     it('ignores comments on a closed pull request', async () => {

@@ -73,8 +73,8 @@ Before submitting a PR, please verify:
 
 ### Contributor License Agreement
 
-Before we can merge a pull request, the person who opened it and every author of its
-commits need to be on the team or to have agreed to the
+Before we can merge a pull request, the person who opened it, the owner of the fork it
+comes from and every author of its commits need to be on the team or to have agreed to the
 [JointJS Contributor License Agreement](CLA.md). You keep the copyright in your work.
 
 The `license/cla` check of a pull request takes care of it. If an author has not agreed
@@ -85,7 +85,8 @@ the agreement, the bot asks you to agree to that one.
 
 The check knows the authors of the commits by their email, so commit with an email that
 is linked to your GitHub account. Agreements are recorded publicly, on the `cla-signatures`
-branch: your GitHub account, the date and a link to your comment.
+branch: your GitHub account, the date, the version of the agreement and a link to your
+comment.
 
 ### Commit Message Format
 

@@ -60,24 +60,39 @@ function isBot(user) {
 
 /**
  * The people of a pull request who must be on the team or have agreed: the one who
- * opened it, and the authors of its commits (by the GitHub account of their email);
- * and the commits whose author email is linked to no account (they cannot agree).
+ * opened it, the user whose fork holds its head branch, and the authors of its commits
+ * (by the GitHub account of their email); and the commits whose author email is linked
+ * to no account (they cannot agree).
  *
- * A commit author is known by an email anyone can write into a commit, so the one who
- * opened the pull request (signed in to GitHub) is always among them. A bot is not
+ * A commit author is known by an email anyone can write into a commit, so the accounts
+ * GitHub vouches for - the one who opened the pull request and the owner of the fork
+ * who pushes to it - are always among them, and mentioned in the comment. A bot is not
  * asked; a bot's email on a commit of a person's pull request leaves that person asked.
+ *
+ * `isStale`: the head moved on while the commits were read - a later run checks it.
  */
 async function participantsOf(github, repo, pull) {
     if (typeof pull.commits !== 'number' || pull.commits > MAX_COMMITS) {
-        return { users: [], unlinked: [], isTooLarge: true };
+        return { users: [], unlinked: [], isTooLarge: true, isStale: false };
     }
     const users = new Map();
-    if (!isBot(pull.user)) {
-        users.set(pull.user.id, { id: pull.user.id, login: pull.user.login, isOpener: true });
+    const addAccount = (user) => {
+        if (user && !isBot(user) && !users.has(user.id)) {
+            users.set(user.id, { id: user.id, login: user.login, isMentioned: true });
+        }
+    };
+    addAccount(pull.user);
+    const headOwner = pull.head.repo?.owner;
+    // A fork of an organization is pushed to by its members: none of them is known here.
+    if (headOwner?.type === 'User' && headOwner.id !== pull.base.repo?.owner?.id) {
+        addAccount(headOwner);
     }
     const commits = await github.paginate(github.rest.pulls.listCommits, { ...repo, pull_number: pull.number, per_page: 100 });
+    if (!commits.some((commit) => commit.sha === pull.head.sha)) {
+        return { users: [...users.values()], unlinked: [], isTooLarge: false, isStale: true };
+    }
     if (commits.length < pull.commits) {
-        return { users: [], unlinked: [], isTooLarge: true };
+        return { users: [], unlinked: [], isTooLarge: true, isStale: false };
     }
     const unlinked = [];
     for (const commit of commits) {
@@ -85,10 +100,10 @@ async function participantsOf(github, repo, pull) {
         if (!author || typeof author.login !== 'string') {
             unlinked.push({ sha: commit.sha });
         } else if (!isBot(author) && !users.has(author.id)) {
-            users.set(author.id, { id: author.id, login: author.login, isOpener: false });
+            users.set(author.id, { id: author.id, login: author.login, isMentioned: false });
         }
     }
-    return { users: [...users.values()], unlinked, isTooLarge: false };
+    return { users: [...users.values()], unlinked, isTooLarge: false, isStale: false };
 }
 
 /** Whether a user has access to this repository: the team does not sign. */
@@ -108,7 +123,8 @@ async function isTeamMember(github, repo, login) {
 async function readSignatures(github, repo) {
     let file;
     try {
-        ({ data: file } = await github.rest.repos.getContent({ ...repo, path: SIGNATURES_PATH, ref: SIGNATURES_BRANCH }));
+        // The full name: a tag of the same name never stands in for the branch.
+        ({ data: file } = await github.rest.repos.getContent({ ...repo, path: SIGNATURES_PATH, ref: `refs/heads/${SIGNATURES_BRANCH}` }));
     } catch (error) {
         if (error.status === 404) {
             return { signatures: [], sha: null };
@@ -140,9 +156,9 @@ function hasSigned(signatures, user) {
 
 /** Who of the pull request still has to agree, or why the check cannot pass. */
 async function evaluate(github, repo, pull) {
-    const { users, unlinked, isTooLarge } = await participantsOf(github, repo, pull);
-    if (isTooLarge) {
-        return { isTooLarge: true, pending: [], unlinked: [] };
+    const { users, unlinked, isTooLarge, isStale } = await participantsOf(github, repo, pull);
+    if (isTooLarge || isStale) {
+        return { isTooLarge, isStale, pending: [], unlinked: [] };
     }
     const { signatures } = await readSignatures(github, repo);
     const pending = [];
@@ -151,7 +167,7 @@ async function evaluate(github, repo, pull) {
             pending.push(user);
         }
     }
-    return { isTooLarge: false, pending, unlinked };
+    return { isTooLarge: false, isStale: false, pending, unlinked };
 }
 
 function agreementUrl(repo, defaultBranch) {
@@ -163,11 +179,12 @@ function isComplete(result) {
 }
 
 /**
- * A pending person as the comment names them: the one who opened the pull request is
- * mentioned (notified); a commit author is not - their email may be someone else's.
+ * A pending person as the comment names them: the one who opened the pull request (and
+ * the owner of its fork) is mentioned (notified); a commit author is not - their email
+ * may be someone else's.
  */
 function nameOf(user) {
-    return user.isOpener ? `@${user.login}` : `\`${user.login}\``;
+    return user.isMentioned ? `@${user.login}` : `\`${user.login}\``;
 }
 
 /** The comment asking for the agreement (or saying it is complete). */
@@ -232,25 +249,59 @@ async function setStatus(github, repo, sha, state, description, targetUrl) {
     });
 }
 
-/** The result on the pull request: its comment (only where there is something to say) and status. */
-async function report(github, repo, pull, defaultBranch, evaluated) {
-    let result = evaluated;
-    // An agreement recorded meanwhile (by a concurrent comment) is not reported as missing.
-    if (result.pending.length > 0) {
-        const { signatures } = await readSignatures(github, repo);
-        result = { ...result, pending: result.pending.filter((user) => !hasSigned(signatures, user)) };
+/** The result without the people whose agreement was recorded since it was evaluated. */
+async function withCurrentSignatures(github, repo, result) {
+    if (result.pending.length === 0) {
+        return result;
     }
-    const url = agreementUrl(repo, defaultBranch);
+    const { signatures } = await readSignatures(github, repo);
+    return { ...result, pending: result.pending.filter((user) => !hasSigned(signatures, user)) };
+}
+
+/** Writes the comment of the result (a new one only where there is something to say); its URL. */
+async function writeComment(github, repo, number, result, url) {
     const body = commentBody(result, url);
-    const existing = await findComment(github, repo, pull.number);
-    let commentUrl = existing?.html_url;
+    const existing = await findComment(github, repo, number);
     if (existing) {
         if (existing.body !== body) {
             await github.rest.issues.updateComment({ ...repo, comment_id: existing.id, body });
         }
-    } else if (!isComplete(result)) {
-        const { data } = await github.rest.issues.createComment({ ...repo, issue_number: pull.number, body });
-        commentUrl = data.html_url;
+        return existing.html_url;
+    }
+    if (isComplete(result)) {
+        return undefined;
+    }
+    const { data } = await github.rest.issues.createComment({ ...repo, issue_number: number, body });
+    return data.html_url;
+}
+
+/** Whether the pull request is still open with the head and base that were checked. */
+async function isUnchanged(github, repo, pull) {
+    const { data: current } = await github.rest.pulls.get({ ...repo, pull_number: pull.number });
+    return current.state === 'open' && current.head.sha === pull.head.sha && current.base.ref === pull.base.ref;
+}
+
+/**
+ * The result on the pull request: its comment and status. An agreement recorded by a
+ * concurrent comment is never reported as missing: the signatures are read again right
+ * before the status. Nothing is reported for a head or base the pull request has left -
+ * the run of that change reports it. (Runs of two heads can still interleave, so the
+ * comment is a courtesy; the status is what counts, and is set for its own head only.)
+ */
+async function report(github, repo, pull, defaultBranch, evaluated) {
+    if (!await isUnchanged(github, repo, pull)) {
+        return null;
+    }
+    const url = agreementUrl(repo, defaultBranch);
+    let result = await withCurrentSignatures(github, repo, evaluated);
+    let commentUrl = await writeComment(github, repo, pull.number, result, url);
+    const latest = await withCurrentSignatures(github, repo, result);
+    if (latest.pending.length !== result.pending.length) {
+        result = latest;
+        commentUrl = await writeComment(github, repo, pull.number, result, url);
+    }
+    if (!await isUnchanged(github, repo, pull)) {
+        return null;
     }
     const { state, description } = statusOf(result);
     await setStatus(github, repo, pull.head.sha, state, description, commentUrl ?? url);
@@ -269,11 +320,20 @@ async function checkPull(github, repo, pull, defaultBranch, core, runUrl) {
     }
     try {
         const result = await evaluate(github, repo, pull);
-        const status = await report(github, repo, pull, defaultBranch, result);
-        core.info(`#${pull.number} ${pull.head.sha}: ${status.state} - ${status.description}`);
+        const status = result.isStale ? null : await report(github, repo, pull, defaultBranch, result);
+        if (status) {
+            core.info(`#${pull.number} ${pull.head.sha}: ${status.state} - ${status.description}`);
+        } else {
+            core.info(`#${pull.number} moved on from ${pull.head.sha} (${pull.base.ref}): its newer run reports it`);
+        }
         return status;
     } catch (error) {
-        await setStatus(github, repo, pull.head.sha, 'error', 'The CLA check failed: see the workflow run', runUrl);
+        core.error(`#${pull.number}: the CLA check failed: ${error.message}`);
+        try {
+            await setStatus(github, repo, pull.head.sha, 'error', 'The CLA check failed: see the workflow run', runUrl);
+        } catch (statusError) {
+            core.error(`#${pull.number}: the error status could not be set either: ${statusError.message}`);
+        }
         throw error;
     }
 }
@@ -294,7 +354,12 @@ async function checkFromWorkflowRun({ github, context, core }) {
     const run = context.payload.workflow_run;
     const defaultBranch = context.payload.repository.default_branch;
     const candidates = (run.pull_requests ?? []).map((listed) => listed.number);
-    if (candidates.length === 0 && run.head_repository && run.head_branch) {
+    if (candidates.length === 0 && !run.head_repository) {
+        // A deleted fork: its pull request is checked again on its next comment or event.
+        core.info(`The head repository of ${run.head_sha} is gone: its pull request cannot be looked up`);
+        return [];
+    }
+    if (candidates.length === 0 && run.head_branch) {
         const listed = await github.paginate(github.rest.pulls.list, {
             ...repo,
             state: 'open',
@@ -374,7 +439,17 @@ async function ensureSignaturesBranch(github, repo) {
     }
 }
 
-/** The other open pull requests into the checked branches opened by the user: checked again after they agree. */
+/** The version (blob SHA) of the agreement on the default branch: what is agreed to. */
+async function agreementBlobOf(github, repo, defaultBranch) {
+    const { data } = await github.rest.repos.getContent({ ...repo, path: AGREEMENT_PATH, ref: `refs/heads/${defaultBranch}` });
+    return `${AGREEMENT_PATH}@${data.sha}`;
+}
+
+/**
+ * The other open pull requests into the checked branches opened by the user: checked
+ * again after they agree. (A pull request of someone else with the user's commits is
+ * checked again on its next push or comment.)
+ */
 async function otherPullsOf(github, repo, user, number) {
     const open = await github.paginate(github.rest.pulls.list, { ...repo, state: 'open', per_page: 100 });
     return open.filter((pull) => pull.number !== number && pull.user?.id === user.id && CHECKED_BASES.has(pull.base.ref));
@@ -409,6 +484,9 @@ async function signFromComment({ github, context, core }) {
             id: signer.id,
             login: signer.login,
             version: AGREEMENT_VERSION,
+            // The text agreed to: the comment itself can be edited or deleted later.
+            agreement: await agreementBlobOf(github, repo, defaultBranch),
+            sentence: SENTENCE,
             signedAt: comment.updated_at ?? comment.created_at,
             pullRequest: pull.number,
             commentId: comment.id,
@@ -420,9 +498,18 @@ async function signFromComment({ github, context, core }) {
     }
     const status = await checkPull(github, repo, pull, defaultBranch, core, runUrl);
     if (isRecorded) {
+        // One failing pull request does not keep the others from being checked.
+        const errors = [];
         for (const other of await otherPullsOf(github, repo, signer, pull.number)) {
-            const { data: full } = await github.rest.pulls.get({ ...repo, pull_number: other.number });
-            await checkPull(github, repo, full, defaultBranch, core, runUrl);
+            try {
+                const { data: full } = await github.rest.pulls.get({ ...repo, pull_number: other.number });
+                await checkPull(github, repo, full, defaultBranch, core, runUrl);
+            } catch (error) {
+                errors.push(error);
+            }
+        }
+        if (errors.length > 0) {
+            throw errors[0];
         }
     }
     return status;

@@ -1,5 +1,6 @@
 # Checks a pull request against the Contributor License Agreement after `cla-trigger.yml`
-# ran: every commit author is on the team (has access to this repository) or has agreed.
+# ran: the one who opened it, the owner of its fork and every commit author are on the team
+# (have access to this repository) or have agreed.
 # Sets the `license/cla` status and comments on the pull request when an author has to agree.
 #
 # `workflow_run` runs this file from the default branch with this repository's token, so
