@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
     permissions:
       contents: read # the script and the signatures; the collaborator check of the team
-      pull-requests: read # the pull request and its commits
+      pull-requests: write # the pull request and its commits; a comment on a pull request needs it too
       issues: write # the comment on the pull request
       statuses: write # the license/cla status
     steps:
