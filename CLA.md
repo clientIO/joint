@@ -2,10 +2,13 @@
 
 Version 1
 
-Thank you for your interest in contributing to JointJS, the open source projects of
-client IO s.r.o. ("client IO", "we" or "us"). This agreement documents the rights You
-grant us in Your Contributions. You keep the copyright in Your work: this agreement is a
-license, not a transfer of ownership. Please read it carefully before You agree to it.
+Thank you for your interest in contributing to JointJS, the open source projects of client
+IO s. r. o., a limited liability company with its registered office at Pernerova 697/35,
+Karlín, 186 00 Prague 8, Czech Republic, company ID (IČO) 04063015, registered in the
+Commercial Register kept by the Municipal Court in Prague, file C 241750 ("client IO",
+"we" or "us"). This agreement documents the rights You grant us in Your Contributions. You
+keep the copyright in Your work: this agreement is a license, not a transfer of ownership.
+Please read it carefully before You agree to it.
 
 ## 1. Definitions
 
