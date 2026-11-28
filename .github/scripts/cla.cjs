@@ -23,8 +23,11 @@ const AGREEMENT_VERSION = 1;
 const SENTENCE = 'I have read the JointJS Contributor License Agreement and I agree to it.';
 // Identifies the comment of this check on a pull request, to update it.
 const MARKER = '<!-- jointjs-cla-check -->';
-// Separates the request for the agreement from the note added once everyone has agreed.
-const COMPLETION_SEPARATOR = '\n\n---\n';
+// The separate comment thanking everyone once they have all agreed.
+const THANKS_MARKER = '<!-- jointjs-cla-thanks -->';
+// In the request once anyone was asked to agree, kept by every later update of it: whether
+// the pull request gets the thanks, or only had a notice (too many commits, unlinked emails).
+const ASKED_FLAG = '<!-- jointjs-cla-asked -->';
 // The account the workflows comment as (their GITHUB_TOKEN).
 const COMMENT_AUTHOR = 'github-actions[bot]';
 // The pull request commits API returns at most this many commits.
@@ -189,28 +192,17 @@ function nameOf(user) {
     return user.isMentioned ? `@${user.login}` : `\`${user.login}\``;
 }
 
-function completionNote(url) {
-    return `✅ Thank you! Everyone on this pull request has agreed to the [Contributor License Agreement](${url}).`;
+function thanksBody(url) {
+    return `${THANKS_MARKER}\n✅ Thank you! Everyone on this pull request has agreed to the [Contributor License Agreement](${url}).`;
 }
 
-/**
- * The existing comment once everyone has agreed: its request is kept - the thread shows
- * what was agreed to and how - and the note is added below it (replacing an earlier one).
- */
-function completedCommentBody(existingBody, url) {
-    const [request] = existingBody.split(COMPLETION_SEPARATOR);
-    return `${request}${COMPLETION_SEPARATOR}${completionNote(url)}`;
-}
-
-/** The comment asking for the agreement (or saying it is complete). */
-function commentBody(result, url) {
+/** The comment asking for the agreement, or explaining why it cannot be checked. */
+function commentBody(result, url, wasAsked) {
+    const header = wasAsked || result.pending.length > 0 ? `${MARKER}\n${ASKED_FLAG}` : MARKER;
     if (result.isTooLarge) {
-        return `${MARKER}\nThis pull request has more than ${MAX_COMMITS} commits, so the Contributor License Agreement check cannot read all of their authors. Please split it, or ask a maintainer.`;
+        return `${header}\nThis pull request has more than ${MAX_COMMITS} commits, so the Contributor License Agreement check cannot read all of their authors. Please split it, or ask a maintainer.`;
     }
-    if (isComplete(result)) {
-        return `${MARKER}\n${completionNote(url)}`;
-    }
-    const lines = [MARKER, 'Thank you for your contribution!'];
+    const lines = [header, 'Thank you for your contribution!'];
     if (result.pending.length > 0) {
         lines.push(
             '',
@@ -247,10 +239,40 @@ function statusOf(result) {
     return { state: 'success', description: 'Everyone has agreed to the CLA, or is on the team' };
 }
 
-/** The comment of this check on the pull request, if it posted one. */
-async function findComment(github, repo, number) {
+/** The comments of this check on the pull request, oldest first. */
+async function ownComments(github, repo, number) {
     const comments = await github.paginate(github.rest.issues.listComments, { ...repo, issue_number: number, per_page: 100 });
-    return comments.find((comment) => comment.user?.login === COMMENT_AUTHOR && typeof comment.body === 'string' && comment.body.startsWith(MARKER));
+    return comments
+        .filter((comment) => comment.user?.login === COMMENT_AUTHOR && typeof comment.body === 'string')
+        .sort((a, b) => a.id - b.id);
+}
+
+function withMarker(comments, marker) {
+    return comments.filter((comment) => comment.body.startsWith(marker));
+}
+
+/** Updates a comment of this check; false when a concurrent run deleted it. */
+async function updateComment(github, repo, commentId, body) {
+    try {
+        await github.rest.issues.updateComment({ ...repo, comment_id: commentId, body });
+        return true;
+    } catch (error) {
+        if (error.status !== 404) {
+            throw error;
+        }
+        return false;
+    }
+}
+
+/** Deletes a comment of this check; one already deleted by a concurrent run is fine. */
+async function deleteComment(github, repo, commentId) {
+    try {
+        await github.rest.issues.deleteComment({ ...repo, comment_id: commentId });
+    } catch (error) {
+        if (error.status !== 404) {
+            throw error;
+        }
+    }
 }
 
 async function setStatus(github, repo, sha, state, description, targetUrl) {
@@ -273,21 +295,58 @@ async function withCurrentSignatures(github, repo, result) {
     return { ...result, pending: result.pending.filter((user) => !hasSigned(signatures, user)) };
 }
 
-/** Writes the comment of the result (a new one only where there is something to say); its URL. */
+/**
+ * Posts a comment with the marker; a concurrent run may have posted one too, and only the
+ * oldest stays. The comment that stays.
+ */
+async function postOnce(github, repo, number, marker, body) {
+    const { data } = await github.rest.issues.createComment({ ...repo, issue_number: number, body });
+    const [oldest] = withMarker(await ownComments(github, repo, number), marker);
+    if (oldest && oldest.id !== data.id) {
+        await deleteComment(github, repo, data.id);
+        return oldest;
+    }
+    return data;
+}
+
+/**
+ * Thanks everyone once, in a comment of its own: the request stays as it was, so the pull
+ * request still shows what was agreed to and how. Its URL.
+ */
+async function writeThanks(github, repo, number, url, comments) {
+    const [existing] = withMarker(comments, THANKS_MARKER);
+    const thanks = existing ?? await postOnce(github, repo, number, THANKS_MARKER, thanksBody(url));
+    return thanks.html_url;
+}
+
+/**
+ * Writes the comments of the result: the request (a new one only where there is something
+ * to ask), or the thanks once everyone who was asked has agreed. Their URL.
+ */
 async function writeComment(github, repo, number, result, url) {
-    const existing = await findComment(github, repo, number);
-    if (existing) {
-        const body = isComplete(result) ? completedCommentBody(existing.body, url) : commentBody(result, url);
-        if (existing.body !== body) {
-            await github.rest.issues.updateComment({ ...repo, comment_id: existing.id, body });
-        }
-        return existing.html_url;
-    }
+    const comments = await ownComments(github, repo, number);
+    const [request] = withMarker(comments, MARKER);
     if (isComplete(result)) {
-        return undefined;
+        // Nobody was asked (the team, or people who agreed before): nothing to say.
+        if (!request) {
+            return undefined;
+        }
+        // Only a notice (too many commits, unlinked emails) that no longer holds: no thanks.
+        if (!request.body.includes(ASKED_FLAG)) {
+            await deleteComment(github, repo, request.id);
+            return undefined;
+        }
+        return writeThanks(github, repo, number, url, comments);
     }
-    const { data } = await github.rest.issues.createComment({ ...repo, issue_number: number, body: commentBody(result, url) });
-    return data.html_url;
+    // Someone has to agree again (a new commit author): an earlier thanks no longer holds.
+    for (const thanks of withMarker(comments, THANKS_MARKER)) {
+        await deleteComment(github, repo, thanks.id);
+    }
+    const body = commentBody(result, url, request?.body.includes(ASKED_FLAG) ?? false);
+    if (request && (request.body === body || await updateComment(github, repo, request.id, body))) {
+        return request.html_url;
+    }
+    return (await postOnce(github, repo, number, MARKER, body)).html_url;
 }
 
 /** Whether the pull request is still open with the head and base that were checked. */
@@ -471,6 +530,18 @@ async function otherPullsOf(github, repo, user, number) {
 }
 
 /**
+ * A 👍 on the comment of the agreement: the person sees it counted. Only a courtesy - the
+ * agreement is recorded already - so a failure is a warning.
+ */
+async function acknowledge(github, repo, comment, core) {
+    try {
+        await github.rest.reactions.createForIssueComment({ ...repo, comment_id: comment.id, content: '+1' });
+    } catch (error) {
+        core.warning(`Could not react to the comment of the agreement: ${error.message}`);
+    }
+}
+
+/**
  * After a comment on a pull request: records the agreement of its author - when the
  * comment is the sentence, written (or edited) by that person, who is on the pull
  * request and has to agree - then checks the pull request again, and the person's
@@ -508,6 +579,7 @@ async function signFromComment({ github, context, core }) {
             comment: comment.html_url,
         });
         core.info(isRecorded ? `Recorded the agreement of ${signer.login}` : `${signer.login} has agreed already`);
+        await acknowledge(github, repo, comment, core);
     } else {
         core.info(`${comment.user.login} is not on this pull request, or does not have to agree: not recorded`);
     }
