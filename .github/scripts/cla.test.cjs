@@ -307,6 +307,19 @@ describe('the CLA check of a pull request', () => {
         assert.equal(fake.comments.filter((comment) => comment.issue === 1).length, 1);
     });
 
+    it('keeps the request in the comment and adds the note below it once everyone has agreed', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, OUTSIDER);
+        await check(fake, 1);
+        const request = fake.checkComment(1).body;
+        await sign(fake, 1, OUTSIDER);
+        await check(fake, 1);
+        const { body } = fake.checkComment(1);
+        assert.ok(body.startsWith(request));
+        assert.ok(body.includes(cla.SENTENCE));
+        assert.equal(body.split('Thank you! Everyone').length - 1, 1);
+    });
+
     it('passes the next pull request of a signed outsider without a comment', async () => {
         const fake = new FakeGitHub();
         fake.addPull(1, OUTSIDER);

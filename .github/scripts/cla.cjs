@@ -23,6 +23,8 @@ const AGREEMENT_VERSION = 1;
 const SENTENCE = 'I have read the JointJS Contributor License Agreement and I agree to it.';
 // Identifies the comment of this check on a pull request, to update it.
 const MARKER = '<!-- jointjs-cla-check -->';
+// Separates the request for the agreement from the note added once everyone has agreed.
+const COMPLETION_SEPARATOR = '\n\n---\n';
 // The account the workflows comment as (their GITHUB_TOKEN).
 const COMMENT_AUTHOR = 'github-actions[bot]';
 // The pull request commits API returns at most this many commits.
@@ -187,13 +189,26 @@ function nameOf(user) {
     return user.isMentioned ? `@${user.login}` : `\`${user.login}\``;
 }
 
+function completionNote(url) {
+    return `✅ Thank you! Everyone on this pull request has agreed to the [Contributor License Agreement](${url}).`;
+}
+
+/**
+ * The existing comment once everyone has agreed: its request is kept - the thread shows
+ * what was agreed to and how - and the note is added below it (replacing an earlier one).
+ */
+function completedCommentBody(existingBody, url) {
+    const [request] = existingBody.split(COMPLETION_SEPARATOR);
+    return `${request}${COMPLETION_SEPARATOR}${completionNote(url)}`;
+}
+
 /** The comment asking for the agreement (or saying it is complete). */
 function commentBody(result, url) {
     if (result.isTooLarge) {
         return `${MARKER}\nThis pull request has more than ${MAX_COMMITS} commits, so the Contributor License Agreement check cannot read all of their authors. Please split it, or ask a maintainer.`;
     }
     if (isComplete(result)) {
-        return `${MARKER}\nThank you! Everyone on this pull request has agreed to the [Contributor License Agreement](${url}).`;
+        return `${MARKER}\n${completionNote(url)}`;
     }
     const lines = [MARKER, 'Thank you for your contribution!'];
     if (result.pending.length > 0) {
@@ -260,9 +275,9 @@ async function withCurrentSignatures(github, repo, result) {
 
 /** Writes the comment of the result (a new one only where there is something to say); its URL. */
 async function writeComment(github, repo, number, result, url) {
-    const body = commentBody(result, url);
     const existing = await findComment(github, repo, number);
     if (existing) {
+        const body = isComplete(result) ? completedCommentBody(existing.body, url) : commentBody(result, url);
         if (existing.body !== body) {
             await github.rest.issues.updateComment({ ...repo, comment_id: existing.id, body });
         }
@@ -271,7 +286,7 @@ async function writeComment(github, repo, number, result, url) {
     if (isComplete(result)) {
         return undefined;
     }
-    const { data } = await github.rest.issues.createComment({ ...repo, issue_number: number, body });
+    const { data } = await github.rest.issues.createComment({ ...repo, issue_number: number, body: commentBody(result, url) });
     return data.html_url;
 }
 
