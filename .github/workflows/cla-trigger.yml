@@ -1,0 +1,28 @@
+# The Contributor License Agreement check of a pull request starts here.
+#
+# A pull request from a fork runs with a read-only token, which cannot comment or
+# set a status. So this workflow does nothing itself: its completion triggers
+# `cla-check.yml`, which runs from the default branch with the permissions to report.
+# It runs no code of the pull request.
+name: CLA trigger
+
+on:
+  pull_request:
+    branches: [ "master", "dev" ]
+    # `edited`: a changed base (the commits to check change with it).
+    types: [ opened, synchronize, reopened, edited ]
+
+permissions: {}
+
+# A new push replaces the run of the previous one (its check finds a newer head and skips).
+concurrency:
+  group: cla-trigger-${{ github.event.pull_request.number }}
+  cancel-in-progress: true
+
+jobs:
+  trigger:
+    name: Request the CLA check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Request the CLA check
+        run: echo "The license/cla status is set by the CLA check workflow."

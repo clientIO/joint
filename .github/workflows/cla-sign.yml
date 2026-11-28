@@ -1,0 +1,53 @@
+# Records a contributor's agreement to the Contributor License Agreement: a comment on a
+# pull request with the sentence of the agreement, by a person on it who has to agree.
+# Writes it to `signatures.json` on the `cla-signatures` branch and checks the pull
+# request again (the `license/cla` status).
+#
+# `issue_comment` runs this file from the default branch with this repository's token, so
+# it must never check out, build or run code of the pull request. It checks out only its
+# own script from the default branch and reads the pull request through the API.
+name: CLA sign
+
+# No concurrency group on purpose (see below).
+on: # zizmor: ignore[concurrency-limits]
+  # Privileged by design (it records agreements and sets statuses on pull requests from
+  # forks); safe because it never checks out or runs pull request code (see above).
+  issue_comment: # zizmor: ignore[dangerous-triggers]
+    types: [ created, edited ]
+
+permissions: {}
+
+# No concurrency group: GitHub keeps one pending run per group and cancels the others,
+# which would drop agreements. Concurrent writes of the signatures file are retried by
+# the script instead (each write names the file version it replaces).
+
+jobs:
+  sign:
+    name: Record the CLA agreement
+    # A comment on a pull request by its own author (not an edit by someone else), not a bot,
+    # that may be the sentence: the script checks it exactly.
+    if: >-
+      ${{ github.event.issue.pull_request
+      && github.event.comment.user.type != 'Bot'
+      && github.event.sender.id == github.event.comment.user.id
+      && contains(github.event.comment.body, 'agree') }}
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # the signatures branch
+      pull-requests: write # the pull request and its commits; a comment on a pull request needs it too
+      issues: write # the comment on the pull request
+      statuses: write # the license/cla status
+    steps:
+      - name: Checkout the check script of the default branch
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          ref: ${{ github.event.repository.default_branch }}
+          sparse-checkout: .github/scripts
+          persist-credentials: false
+
+      - name: Record the agreement and check the pull request
+        uses: actions/github-script@3a2844b7e9c422d3c10d287c895573f7108da1b3 # v9.0.0
+        with:
+          script: |
+            const { signFromComment } = require('./.github/scripts/cla.cjs');
+            await signFromComment({ github, context, core });
