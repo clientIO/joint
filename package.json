@@ -12,7 +12,8 @@
   "scripts": {
     "dist": "yarn workspaces foreach --all -tvv run dist",
     "build": "yarn workspaces foreach --all -tvv run build",
-    "test": "yarn workspaces foreach --all -tvv run test",
+    "test": "yarn test-cla && yarn workspaces foreach --all -tvv run test",
+    "test-cla": "node --test \".github/scripts/*.test.cjs\"",
     "test-server": "yarn workspaces foreach --all -tvv run test-server",
     "test-client": "yarn workspaces foreach --all -tvv run test-client",
     "test-ts": "yarn workspaces foreach --all -tvv run test-ts",

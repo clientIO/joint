@@ -39,6 +39,9 @@ class FakeGitHub {
         this.conflictsToRaise = 0;
         this.collaboratorError = null;
         this.isLargeFile = false;
+        this.reactions = [];
+        this.createdComments = 0;
+        this.reactionError = null;
         // Called on every read of the comments: what happens meanwhile.
         this.onListComments = null;
         const fake = this;
@@ -139,18 +142,42 @@ class FakeGitHub {
                     return { data: {} };
                 },
             },
+            reactions: {
+                async createForIssueComment({ comment_id, content }) {
+                    if (fake.reactionError) {
+                        throw fake.reactionError;
+                    }
+                    fake.reactions.push({ commentId: comment_id, content });
+                    return { data: {} };
+                },
+            },
             issues: {
                 async listComments({ issue_number }) {
                     await fake.onListComments?.(issue_number);
                     return { data: fake.comments.filter((comment) => comment.issue === issue_number) };
                 },
                 async createComment({ issue_number, body }) {
+                    fake.createdComments += 1;
                     const comment = { id: fake.nextId++, issue: issue_number, body, user: ACTIONS_BOT, html_url: `https://github.com/c/${fake.nextId}` };
                     fake.comments.push(comment);
                     return { data: comment };
                 },
+                async deleteComment({ comment_id }) {
+                    const comment = fake.comments.find((candidate) => candidate.id === comment_id);
+                    if (!comment) {
+                        throw httpError(404);
+                    }
+                    if (comment.user !== ACTIONS_BOT) {
+                        throw httpError(403);
+                    }
+                    fake.comments = fake.comments.filter((candidate) => candidate !== comment);
+                    return { data: {} };
+                },
                 async updateComment({ comment_id, body }) {
                     const comment = fake.comments.find((candidate) => candidate.id === comment_id);
+                    if (!comment) {
+                        throw httpError(404);
+                    }
                     if (comment.user !== ACTIONS_BOT) {
                         throw httpError(403);
                     }
@@ -200,12 +227,17 @@ class FakeGitHub {
         return [...this.statuses].reverse().find((status) => status.sha === sha);
     }
 
+    /** The comment asking for the agreement. */
     checkComment(number) {
-        return this.comments.find((comment) => comment.issue === number && comment.user === ACTIONS_BOT);
+        return this.comments.find((comment) => comment.issue === number && comment.user === ACTIONS_BOT && comment.body.startsWith(cla.MARKER));
+    }
+
+    thanksComments(number) {
+        return this.comments.filter((comment) => comment.issue === number && comment.user === ACTIONS_BOT && comment.body.includes('Thank you! Everyone'));
     }
 }
 
-const core = { info() {}, error() {} };
+const core = { info() {}, error() {}, warning() {} };
 const base = { repo: { owner: OWNER, repo: REPO }, serverUrl: 'https://github.com', runId: 7 };
 
 function runContext(fake, number, { listedPulls = [] } = {}) {
@@ -303,21 +335,198 @@ describe('the CLA check of a pull request', () => {
             commentId: 42,
             comment: 'https://github.com/clientIO/joint/pull/1#issuecomment-42',
         }]);
-        assert.ok(fake.checkComment(1).body.includes('Thank you! Everyone'));
-        assert.equal(fake.comments.filter((comment) => comment.issue === 1).length, 1);
+        assert.equal(fake.thanksComments(1).length, 1);
+        assert.equal(fake.comments.filter((comment) => comment.issue === 1).length, 2);
     });
 
-    it('keeps the request in the comment and adds the note below it once everyone has agreed', async () => {
+    it('keeps the request unchanged and thanks once, in a comment of its own', async () => {
         const fake = new FakeGitHub();
         fake.addPull(1, OUTSIDER);
         await check(fake, 1);
         const request = fake.checkComment(1).body;
         await sign(fake, 1, OUTSIDER);
         await check(fake, 1);
+        await sign(fake, 1, OUTSIDER);
+        assert.equal(fake.checkComment(1).body, request);
+        assert.equal(fake.thanksComments(1).length, 1);
+        // Posted once: a re-run never posts (and notifies) again.
+        assert.equal(fake.createdComments, 2);
+        assert.ok(fake.thanksComments(1)[0].body.startsWith('<!-- jointjs-cla-thanks -->'));
+    });
+
+    it('does not thank on a pull request where nobody was asked', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, TEAM);
+        await check(fake, 1);
+        await sign(fake, 1, TEAM);
+        assert.equal(fake.comments.length, 0);
+    });
+
+    it('deletes the thanks when someone has to agree again, and thanks again after', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, OUTSIDER);
+        await check(fake, 1);
+        await sign(fake, 1, OUTSIDER);
+        assert.equal(fake.thanksComments(1).length, 1);
+        // A new commit by another outsider.
+        fake.addPull(1, OUTSIDER, { authors: [OUTSIDER, OTHER] });
+        await check(fake, 1);
+        assert.equal(fake.lastStatus(1).state, 'failure');
+        assert.equal(fake.thanksComments(1).length, 0);
+        assert.ok(fake.checkComment(1).body.includes('`other`'));
+        await sign(fake, 1, OTHER);
+        assert.equal(fake.lastStatus(1).state, 'success');
+        assert.equal(fake.thanksComments(1).length, 1);
+    });
+
+    it('keeps only the oldest thanks when two runs thank at once', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, OUTSIDER);
+        await check(fake, 1);
+        await sign(fake, 1, OUTSIDER);
+        const [first] = fake.thanksComments(1);
+        // Another run posts its thanks after this one looked for it, before this one reads again.
+        fake.comments = fake.comments.filter((comment) => comment !== first);
+        let reads = 0;
+        fake.onListComments = async () => {
+            reads += 1;
+            // 1: no thanks yet - this run posts - 2: the read after posting.
+            if (reads === 2) {
+                fake.comments.push({ ...first, id: 1 });
+            }
+        };
+        await check(fake, 1);
+        fake.onListComments = null;
+        const thanks = fake.thanksComments(1);
+        assert.equal(thanks.length, 1);
+        assert.equal(thanks[0].id, 1);
+    });
+
+    it('fails, not errors, when a concurrent run deleted the thanks first', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, OUTSIDER);
+        await check(fake, 1);
+        await sign(fake, 1, OUTSIDER);
+        fake.addPull(1, OUTSIDER, { authors: [OUTSIDER, OTHER] });
+        // The other run deletes the thanks after this one listed the comments.
+        const [thanks] = fake.thanksComments(1);
+        const listComments = fake.rest.issues.listComments;
+        fake.rest.issues.listComments = async (params) => {
+            const listed = await listComments(params);
+            fake.comments = fake.comments.filter((comment) => comment !== thanks);
+            return listed;
+        };
+        await check(fake, 1);
+        assert.equal(fake.lastStatus(1).state, 'failure');
+        assert.equal(fake.thanksComments(1).length, 0);
+    });
+
+    it('keeps only the oldest request when two runs ask at once', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, OUTSIDER);
+        let reads = 0;
+        fake.onListComments = async () => {
+            reads += 1;
+            // 1: no request yet - this run posts - 2: the read after posting.
+            if (reads === 2) {
+                fake.comments.push({ id: 1, issue: 1, body: `${cla.MARKER}\nasked by another run`, user: ACTIONS_BOT, html_url: 'https://github.com/c/1' });
+            }
+        };
+        await check(fake, 1);
+        fake.onListComments = null;
+        const requests = fake.comments.filter((comment) => comment.body.startsWith(cla.MARKER));
+        assert.equal(requests.length, 1);
+        assert.equal(requests[0].id, 1);
+        assert.equal(fake.lastStatus(1).state, 'failure');
+    });
+
+    it('removes a notice that no longer holds instead of thanking', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, TEAM, { unlinked: 1 });
+        await check(fake, 1);
+        assert.ok(fake.checkComment(1));
+        // The commit is amended with a linked email.
+        fake.addPull(1, TEAM);
+        await check(fake, 1);
+        assert.equal(fake.lastStatus(1).state, 'success');
+        assert.equal(fake.comments.length, 0);
+    });
+
+    it('thanks after an agreement even when a notice was fixed last', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, OUTSIDER, { unlinked: 1 });
+        await check(fake, 1);
+        await sign(fake, 1, OUTSIDER);
+        // Agreed: only the notice is left, then the commit is amended with a linked email.
+        assert.equal(fake.lastStatus(1).state, 'failure');
+        assert.ok(!fake.checkComment(1).body.includes(cla.SENTENCE));
+        fake.addPull(1, OUTSIDER);
+        await check(fake, 1);
+        assert.equal(fake.lastStatus(1).state, 'success');
+        assert.ok(fake.checkComment(1));
+        assert.equal(fake.thanksComments(1).length, 1);
+    });
+
+    it('asks again in a new comment when a concurrent run deleted the request', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, OUTSIDER, { authors: [OUTSIDER, OTHER] });
+        await check(fake, 1);
+        await sign(fake, 1, OUTSIDER);
+        const [request] = fake.comments;
+        const listComments = fake.rest.issues.listComments;
+        fake.rest.issues.listComments = async (params) => {
+            const listed = await listComments(params);
+            fake.comments = fake.comments.filter((comment) => comment !== request);
+            return listed;
+        };
+        // A new commit changes the request: an email not linked to an account.
+        fake.addPull(1, OUTSIDER, { authors: [OUTSIDER, OTHER], unlinked: 1 });
+        await check(fake, 1);
+        fake.rest.issues.listComments = listComments;
+        assert.equal(fake.lastStatus(1).state, 'failure');
         const { body } = fake.checkComment(1);
-        assert.ok(body.startsWith(request));
-        assert.ok(body.includes(cla.SENTENCE));
-        assert.equal(body.split('Thank you! Everyone').length - 1, 1);
+        assert.ok(body.includes('`other`'));
+        assert.ok(body.includes('1-u0-11'));
+    });
+
+    it('reacts with a thumbs up to the comment of the agreement', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, OUTSIDER);
+        await check(fake, 1);
+        await sign(fake, 1, OUTSIDER);
+        assert.deepEqual(fake.reactions, [{ commentId: 42, content: '+1' }]);
+        // Agreeing again (already recorded) is acknowledged too.
+        await sign(fake, 1, OUTSIDER);
+        assert.equal(fake.reactions.length, 2);
+    });
+
+    it('does not react to a sentence that is not recorded', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, OUTSIDER);
+        await sign(fake, 1, TEAM);
+        await sign(fake, 1, OTHER);
+        await sign(fake, 1, OUTSIDER, cla.SENTENCE, { sender: OTHER });
+        assert.deepEqual(fake.reactions, []);
+    });
+
+    it('reacts to the agreement even when checking the pull request fails', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, OUTSIDER);
+        fake.rest.repos.createCommitStatus = async () => {
+            throw httpError(500);
+        };
+        await assert.rejects(sign(fake, 1, OUTSIDER));
+        assert.equal(fake.readSignatureList().length, 1);
+        assert.deepEqual(fake.reactions, [{ commentId: 42, content: '+1' }]);
+    });
+
+    it('records the agreement and sets the status when the reaction fails', async () => {
+        const fake = new FakeGitHub();
+        fake.addPull(1, OUTSIDER);
+        fake.reactionError = httpError(500);
+        await sign(fake, 1, OUTSIDER);
+        assert.equal(fake.lastStatus(1).state, 'success');
+        assert.equal(fake.readSignatureList().length, 1);
     });
 
     it('passes the next pull request of a signed outsider without a comment', async () => {
@@ -338,7 +547,7 @@ describe('the CLA check of a pull request', () => {
         await check(fake, 2);
         await sign(fake, 1, OUTSIDER);
         assert.equal(fake.lastStatus(2).state, 'success');
-        assert.ok(fake.checkComment(2).body.includes('Thank you! Everyone'));
+        assert.equal(fake.thanksComments(2).length, 1);
     });
 
     it('does not take the agreement from someone else', async () => {
@@ -540,7 +749,7 @@ describe('the CLA check of a pull request', () => {
         };
         await check(fake, 1);
         assert.equal(fake.lastStatus(1).state, 'success');
-        assert.ok(fake.checkComment(1).body.includes('Thank you! Everyone'));
+        assert.equal(fake.thanksComments(1).length, 1);
     });
 
     it('reports nothing when the pull request was pushed to before its commits were read', async () => {
