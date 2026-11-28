@@ -69,20 +69,24 @@ Before submitting a PR, please verify:
 - [ ] If applicable, there are new or updated @types
 - [ ] If applicable, documentation has been updated
 - [ ] If the change is releasable, you've added a changeset (`yarn changeset`)
-- [ ] You've signed the [Contributor License Agreement](#contributor-license-agreement)
+- [ ] You've agreed to the [Contributor License Agreement](#contributor-license-agreement)
 
 ### Contributor License Agreement
 
-Before we can merge a pull request, every author of its commits needs to have signed
-the JointJS Contributor License Agreement. It lets us distribute your contribution
-with JointJS, while you keep the copyright in your work.
+Before we can merge a pull request, the person who opened it, the owner of the fork it
+comes from and every author of its commits need to be on the team or to have agreed to the
+[JointJS Contributor License Agreement](CLA.md). You keep the copyright in your work.
 
-The CLA Assistant bot checks every pull request. If an author has not signed yet, it
-comments with a link to the agreement: sign it with your GitHub account and its check
-turns green. One signature covers all your later pull requests; if we publish a new
-version of the agreement, the bot asks you to sign that one. The bot matches commits
-to GitHub accounts by email, so commit with an email that is linked to your GitHub
-account.
+The `license/cla` check of a pull request takes care of it. If an author has not agreed
+yet, a bot comments on the pull request with the sentence of the agreement: reply to the
+pull request with that sentence, from your own GitHub account, and the check turns green.
+You agree once; your later pull requests pass right away. If we publish a new version of
+the agreement, the bot asks you to agree to that one.
+
+The check knows the authors of the commits by their email, so commit with an email that
+is linked to your GitHub account. Agreements are recorded publicly, on the `cla-signatures`
+branch: your GitHub account, the date, the version of the agreement, the sentence, and
+the pull request and a link to your comment.
 
 ### Commit Message Format
 
