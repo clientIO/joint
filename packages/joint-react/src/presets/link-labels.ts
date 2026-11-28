@@ -13,6 +13,13 @@ export interface LinkLabel {
   position?: number;
   /** Shift the label off the path. A number nudges it perpendicular to the line; `{ x, y }` moves it freely. */
   offset?: number | { x: number; y: number };
+  /**
+   * Size passed to the native label for label-aware layouts.
+   * In `labelMap`, omitted values inherit `labelStyle.size`.
+   * If neither supplies a size (or this is explicitly `undefined`),
+   * the native `defaultLabel.size` or built-in default applies.
+   */
+  size?: dia.Size;
   /** Text color. Empty inherits the theme default. @default '' */
   color?: string;
   /** Fill color of the label background. Empty inherits the theme default. @default '' */
@@ -78,6 +85,7 @@ export function linkLabel(label: LinkLabel): dia.Link.Label {
     text,
     position = defaultLabelStyle.position,
     offset,
+    size,
     color = defaultLabelStyle.color,
     fontSize = defaultLabelStyle.fontSize,
     fontFamily = defaultLabelStyle.fontFamily,
@@ -143,7 +151,7 @@ export function linkLabel(label: LinkLabel): dia.Link.Label {
   const labelPosition: Record<string, unknown> = { distance: position };
   if (offset !== undefined) labelPosition.offset = offset;
 
-  return {
+  const nativeLabel: dia.Link.Label = {
     markup: [
       {
         tagName: bodyTagName,
@@ -162,6 +170,8 @@ export function linkLabel(label: LinkLabel): dia.Link.Label {
     },
     position: labelPosition,
   };
+  if (size !== undefined) nativeLabel.size = size;
+  return nativeLabel;
 }
 
 /**
@@ -180,8 +190,11 @@ export function linkLabel(label: LinkLabel): dia.Link.Label {
  *   source: { id: 'a' },
  *   target: { id: 'b' },
  *   labels: linkLabels(
- *     { name: { text: 'orders' }, card: { text: '1..*', position: 0.9 } },
- *     { fontSize: 12 } // applied to every label
+ *     {
+ *       name: { text: 'orders', size: { width: 90, height: 20 } },
+ *       card: { text: '1..*', position: 0.9 },
+ *     },
+ *     { fontSize: 12, size: { width: 30, height: 16 } } // shared defaults
  *   ),
  * });
  * ```
