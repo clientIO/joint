@@ -79,6 +79,10 @@ export class WorkerProvider extends Provider {
                         reject(new Error(message.message));
                         break;
                     }
+                    case 'junctionChanged': {
+                        this.trigger('junction:changed', message.junctionId, new g.Point(message.position));
+                        break;
+                    }
                     case 'connectorChanged': {
                         this.trigger(
                             'connector:changed',

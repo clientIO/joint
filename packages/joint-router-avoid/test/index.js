@@ -844,3 +844,512 @@ QUnit.module('idle after incremental changes (main thread)', () => {
         assert.equal(idleCount, 1, 'idle fired for the link removal');
     });
 });
+
+QUnit.module('experimental_isJunction', () => {
+
+    // Three 100x100 nodes and a 10x10 junction; A and B feed the junction, the junction feeds C.
+    function createJunctionGraph(junctionPosition = { x: 250, y: 195 }, junctionAttributes = {}) {
+        const graph = new joint.dia.Graph();
+        const size = { width: 100, height: 100 };
+        const a = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size });
+        const b = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 300 }, size });
+        const c = new joint.shapes.standard.Rectangle({ position: { x: 400, y: 150 }, size });
+        const junction = new joint.shapes.standard.Circle({ position: junctionPosition, size: { width: 10, height: 10 }, ...junctionAttributes });
+        const links = [
+            new joint.shapes.standard.Link({ source: { id: a.id }, target: { id: junction.id }}),
+            new joint.shapes.standard.Link({ source: { id: b.id }, target: { id: junction.id }}),
+            new joint.shapes.standard.Link({ source: { id: junction.id }, target: { id: c.id }})
+        ];
+        graph.resetCells([a, b, c, junction, ...links]);
+        return { graph, a, b, c, junction, links };
+    }
+
+    function junctionEndPoint(link, junction) {
+        return (link.source().id === junction.id) ? link.getSourcePoint() : link.getTargetPoint();
+    }
+
+    QUnit.test('routes links to a junction element', async assert => {
+        // A fixed junction keeps its position, so the links end at its center.
+        const { graph, junction, links } = createJunctionGraph(undefined, { junctionFixed: true });
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {
+            experimental_isJunction: ({ element }) => element === junction
+        });
+        const routed = [];
+        routerService.on('link:routed', (link, options) => routed.push({ link, ...options }));
+        routerService.start();
+
+        links.forEach((link, index) => {
+            const result = routed.find((r) => r.link === link);
+            assert.equal(result && result.origin, 'avoid', `link ${index} routed by avoid`);
+            assert.ok(isOrthogonalPath(link), `link ${index} is orthogonal`);
+            const endPoint = junctionEndPoint(link, junction);
+            assert.ok(endPoint.distance(junction.getBBox().center()) <= 1, `link ${index} ends at the junction center (${endPoint})`);
+        });
+
+        routerService.destroy();
+    });
+
+    QUnit.test('routes a port to a junction just outside the element', async assert => {
+        // The junction is closer to the port than the shape buffer distance.
+        const graph = new joint.dia.Graph();
+        const a = new joint.shapes.standard.Rectangle({
+            position: { x: 0, y: 0 },
+            size: { width: 100, height: 100 },
+            ports: { groups: { bottom: { position: 'bottom' }}, items: [{ id: 'out', group: 'bottom' }] }
+        });
+        const c = new joint.shapes.standard.Rectangle({ position: { x: 400, y: 300 }, size: { width: 100, height: 100 }});
+        const junction = new joint.shapes.standard.Circle({ position: { x: 45, y: 115 }, size: { width: 10, height: 10 }, junctionFixed: true });
+        const link = new joint.shapes.standard.Link({ source: { id: a.id, port: 'out' }, target: { id: junction.id }});
+        graph.resetCells([a, c, junction, link, new joint.shapes.standard.Link({ source: { id: junction.id }, target: { id: c.id }})]);
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {
+            shapeBufferDistance: 20,
+            experimental_isJunction: ({ element }) => element === junction
+        });
+        const routed = [];
+        routerService.on('link:routed', (routedLink, options) => routed.push({ link: routedLink, ...options }));
+        routerService.start();
+
+        const result = routed.find((r) => r.link === link);
+        assert.equal(result && result.origin, 'avoid', 'routed by avoid, not the fallback');
+        assert.ok(isOrthogonalPath(link), 'the link is orthogonal');
+
+        routerService.destroy();
+    });
+
+    QUnit.test('moves the junction before its links are routed', async assert => {
+        const { graph, junction, links } = createJunctionGraph({ x: 600, y: 600 });
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {
+            experimental_isJunction: ({ element }) => element === junction
+        });
+        // What each link looks like when it is reported as routed.
+        const orthogonalWhenRouted = new Map();
+        routerService.on('link:routed', (link) => orthogonalWhenRouted.set(link, isOrthogonalPath(link)));
+        routerService.start();
+
+        assert.notOk(junction.getBBox().center().equals({ x: 605, y: 605 }), 'the junction moved');
+        links.forEach((link, index) => {
+            assert.ok(orthogonalWhenRouted.get(link), `link ${index} is orthogonal when routed`);
+        });
+
+        routerService.destroy();
+    });
+
+    QUnit.test('moves a free junction to the recommended position', async assert => {
+        const { graph, junction, links } = createJunctionGraph({ x: 600, y: 600 });
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {
+            experimental_isJunction: ({ element }) => element === junction
+        });
+        const routedCount = new Map();
+        routerService.on('link:routed', (link) => routedCount.set(link, (routedCount.get(link) || 0) + 1));
+        routerService.start();
+
+        const center = junction.getBBox().center();
+        assert.notOk(center.equals({ x: 605, y: 605 }), `the junction moved (${center})`);
+        links.forEach((link, index) => {
+            assert.ok(junctionEndPoint(link, junction).distance(center) <= 1, `link ${index} ends at the junction center`);
+            assert.ok(isOrthogonalPath(link), `link ${index} is orthogonal`);
+            assert.ok(routedCount.get(link) <= 2, `link ${index} routed at most twice (${routedCount.get(link)})`);
+        });
+
+        routerService.destroy();
+    });
+
+    QUnit.test('the routes avoid computes end at the final junction position', async assert => {
+        const { graph, b, junction, links } = createJunctionGraph({ x: 600, y: 600 });
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {
+            experimental_isJunction: ({ element }) => element === junction
+        });
+        // The last route avoid reported for each link, as computed (not as applied).
+        const lastRoutes = {};
+        routerService.provider.on('connector:changed', (linkId, points) => { lastRoutes[linkId] = points; });
+        routerService.start();
+        b.position(0, 600);
+
+        const center = junction.getBBox().center();
+        links.forEach((link, index) => {
+            const route = lastRoutes[link.id];
+            const end = (link.source().id === junction.id) ? route[0] : route[route.length - 1];
+            assert.ok(end.distance(center) <= 1, `link ${index} route ends at the junction (${end} vs ${center})`);
+        });
+
+        routerService.destroy();
+    });
+
+    QUnit.test('keeps a fixed junction in place', async assert => {
+        const { graph, junction } = createJunctionGraph({ x: 600, y: 600 }, { junctionFixed: true });
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {
+            experimental_isJunction: ({ element }) => element === junction
+        });
+        routerService.start();
+
+        assert.deepEqual(junction.get('position'), { x: 600, y: 600 }, 'the junction did not move');
+
+        routerService.destroy();
+    });
+
+    QUnit.test('unfixing a junction moves it to the recommended position', async assert => {
+        const { graph, junction } = createJunctionGraph({ x: 600, y: 600 }, { junctionFixed: true });
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {
+            experimental_isJunction: ({ element }) => element === junction
+        });
+        routerService.start();
+
+        junction.set('junctionFixed', false);
+
+        assert.notDeepEqual(junction.get('position'), { x: 600, y: 600 }, 'the junction moved');
+
+        routerService.destroy();
+    });
+
+    QUnit.test('removing a junction element falls back without errors', async assert => {
+        const { graph, junction, links } = createJunctionGraph();
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {
+            experimental_isJunction: ({ element }) => element === junction
+        });
+        routerService.start();
+        assert.ok(routerService.provider.junctionRefs[junction.id], 'the element is an avoid junction');
+
+        junction.remove({ disconnectLinks: true });
+
+        links.forEach((link, index) => {
+            assert.ok(graph.getCell(link.id), `link ${index} still in the graph`);
+        });
+        assert.notOk(routerService.provider.hasShape(junction.id), 'junction removed from avoid');
+        assert.notOk(routerService.provider.junctionRefs[junction.id], 'junction ref deleted');
+
+        routerService.destroy();
+    });
+
+    QUnit.test('routes a link between two junctions', async assert => {
+        const graph = new joint.dia.Graph();
+        const size = { width: 100, height: 100 };
+        const a = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size });
+        const b = new joint.shapes.standard.Rectangle({ position: { x: 600, y: 0 }, size });
+        const j1 = new joint.shapes.standard.Circle({ position: { x: 200, y: 45 }, size: { width: 10, height: 10 }});
+        const j2 = new joint.shapes.standard.Circle({ position: { x: 400, y: 45 }, size: { width: 10, height: 10 }});
+        const between = new joint.shapes.standard.Link({ source: { id: j1.id }, target: { id: j2.id }});
+        graph.resetCells([a, b, j1, j2,
+            new joint.shapes.standard.Link({ source: { id: a.id }, target: { id: j1.id }}),
+            between,
+            new joint.shapes.standard.Link({ source: { id: j2.id }, target: { id: b.id }})
+        ]);
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {
+            experimental_isJunction: ({ element }) => element === j1 || element === j2
+        });
+        const routed = [];
+        routerService.on('link:routed', (link, options) => routed.push({ link, ...options }));
+        routerService.start();
+
+        const result = routed.find((r) => r.link === between);
+        assert.equal(result && result.origin, 'avoid', 'the junction-to-junction link is routed by avoid');
+        assert.ok(routerService.provider.junctionRefs[j1.id] && routerService.provider.junctionRefs[j2.id], 'both elements are avoid junctions');
+        assert.ok(between.getSourcePoint().distance(j1.getBBox().center()) <= 1, 'starts at the first junction');
+        assert.ok(between.getTargetPoint().distance(j2.getBBox().center()) <= 1, 'ends at the second junction');
+
+        routerService.destroy();
+    });
+});
+
+QUnit.module('experimental_checkpointsAttribute', () => {
+
+    async function initCheckpointsRouter(checkpoints) {
+        const graph = new joint.dia.Graph();
+        const size = { width: 100, height: 100 };
+        const a = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size });
+        const b = new joint.shapes.standard.Rectangle({ position: { x: 400, y: 0 }, size });
+        const link = new joint.shapes.standard.Link({ source: { id: a.id }, target: { id: b.id }, checkpoints });
+        graph.resetCells([a, b, link]);
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {
+            experimental_checkpointsAttribute: 'checkpoints'
+        });
+        routerService.start();
+        return { graph, routerService, a, b, link };
+    }
+
+    function routeDistanceTo(link, point) {
+        const polyline = new joint.g.Polyline([link.getSourcePoint(), ...link.vertices(), link.getTargetPoint()]);
+        return polyline.closestPoint(point).distance(point);
+    }
+
+    QUnit.test('the route passes through the checkpoints', async assert => {
+        const { routerService, link } = await initCheckpointsRouter([{ x: 250, y: 300 }]);
+
+        assert.ok(routeDistanceTo(link, { x: 250, y: 300 }) < 1, 'the route passes through the checkpoint');
+        assert.ok(isOrthogonalPath(link), 'the route is orthogonal');
+        assert.deepEqual(link.get('checkpoints'), [{ x: 250, y: 300 }], 'the checkpoints are left unchanged');
+
+        routerService.destroy();
+    });
+
+    QUnit.test('changing the checkpoints reroutes', async assert => {
+        const { routerService, link } = await initCheckpointsRouter([{ x: 250, y: 300 }]);
+        const events = [];
+        routerService.on('link:routing', () => events.push('routing'));
+        routerService.on('link:routed', () => events.push('routed'));
+
+        link.set('checkpoints', [{ x: 250, y: -200 }]);
+
+        assert.deepEqual(events, ['routing', 'routed'], 'the link is rerouted');
+        assert.ok(routeDistanceTo(link, { x: 250, y: -200 }) < 1, 'the route passes through the new checkpoint');
+
+        routerService.destroy();
+    });
+
+    QUnit.test('clearing the checkpoints reroutes without them', async assert => {
+        const { routerService, link } = await initCheckpointsRouter([{ x: 250, y: 300 }]);
+
+        link.set('checkpoints', []);
+
+        assert.ok(link.vertices().every((vertex) => vertex.y < 150), 'the route no longer goes below the elements');
+
+        routerService.destroy();
+    });
+
+    QUnit.test('a checkpoint inside an element is skipped', async assert => {
+        const { routerService, link } = await initCheckpointsRouter([{ x: 450, y: 50 }]);
+
+        assert.ok(isOrthogonalPath(link), 'the route is orthogonal');
+
+        routerService.destroy();
+    });
+});
+
+QUnit.module('experimental options: final review fixes', () => {
+
+    QUnit.test('a checkpoint inside another element does not route the link through it', async assert => {
+        const graph = new joint.dia.Graph();
+        const size = { width: 100, height: 100 };
+        const a = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size });
+        const b = new joint.shapes.standard.Rectangle({ position: { x: 600, y: 0 }, size });
+        const obstacle = new joint.shapes.standard.Rectangle({ position: { x: 250, y: 250 }, size });
+        const link = new joint.shapes.standard.Link({ source: { id: a.id }, target: { id: b.id }, checkpoints: [{ x: 300, y: 300 }] });
+        graph.resetCells([a, b, obstacle, link]);
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, { experimental_checkpointsAttribute: 'checkpoints' });
+        routerService.start();
+
+        const points = [link.getSourcePoint(), ...link.vertices(), link.getTargetPoint()];
+        const bbox = obstacle.getBBox();
+        const crosses = points.slice(1).some((point, i) => new joint.g.Line(points[i], point).intersect(bbox));
+        assert.notOk(crosses, `the route does not cross the obstacle (${points.map(String).join(' ')})`);
+
+        routerService.destroy();
+    });
+
+    QUnit.test('a listener changing the graph while routes are announced does not leave stale routes', async assert => {
+        const graph = new joint.dia.Graph();
+        const size = { width: 100, height: 100 };
+        const a = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size });
+        const b = new joint.shapes.standard.Rectangle({ position: { x: 300, y: 0 }, size });
+        const c = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 300 }, size });
+        const ab = new joint.shapes.standard.Link({ source: { id: a.id }, target: { id: b.id }});
+        const ac = new joint.shapes.standard.Link({ source: { id: a.id }, target: { id: c.id }});
+        graph.resetCells([a, b, c, ab, ac]);
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {});
+        let moved = false;
+        routerService.on('link:routed', () => {
+            if (moved) return;
+            moved = true;
+            c.position(300, 300);
+        });
+        routerService.start();
+
+        const end = ac.getTargetPoint();
+        assert.ok(c.getBBox().containsPoint(end), `the link ends at the moved element (${end})`);
+        assert.ok(isOrthogonalPath(ac), 'the route is orthogonal');
+
+        routerService.destroy();
+    });
+
+    QUnit.test('destroy() from a listener after a nested pass frees the router once', async assert => {
+        const graph = new joint.dia.Graph();
+        const size = { width: 100, height: 100 };
+        const a = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size });
+        const b = new joint.shapes.standard.Rectangle({ position: { x: 300, y: 0 }, size });
+        const c = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 300 }, size });
+        graph.resetCells([a, b, c,
+            new joint.shapes.standard.Link({ source: { id: a.id }, target: { id: b.id }}),
+            new joint.shapes.standard.Link({ source: { id: a.id }, target: { id: c.id }})
+        ]);
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {});
+        let count = 0;
+        routerService.on('link:routed', () => {
+            count++;
+            if (count === 1) c.position(300, 300);
+            if (count === 2) routerService.destroy();
+        });
+
+        routerService.start();
+        assert.ok(true, 'no error');
+    });
+
+    QUnit.test('switching an element between junction and shape replaces its avoid object', async assert => {
+        const graph = new joint.dia.Graph();
+        const size = { width: 100, height: 100 };
+        const a = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size });
+        const b = new joint.shapes.standard.Rectangle({ position: { x: 400, y: 0 }, size });
+        const j = new joint.shapes.standard.Circle({ position: { x: 200, y: 45 }, size: { width: 10, height: 10 }, isJunction: true, junctionFixed: true });
+        graph.resetCells([a, b, j,
+            new joint.shapes.standard.Link({ source: { id: a.id }, target: { id: j.id }}),
+            new joint.shapes.standard.Link({ source: { id: j.id }, target: { id: b.id }})
+        ]);
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {
+            experimental_isJunction: ({ element }) => !!element.get('isJunction')
+        });
+        routerService.start();
+        const { provider } = routerService;
+
+        j.set('isJunction', false);
+        j.translate(0, 10);
+        assert.notOk(provider.junctionRefs[j.id], 'junction to shape: no junction left');
+        assert.ok(provider.shapeRefs[j.id], 'junction to shape: a shape');
+
+        j.set('isJunction', true);
+        j.translate(0, 10);
+        assert.ok(provider.junctionRefs[j.id], 'shape to junction: a junction');
+        assert.notOk(provider.shapeRefs[j.id], 'shape to junction: no shape left');
+
+        routerService.destroy();
+    });
+
+    QUnit.test('a listener snapping a moved junction does not loop', async assert => {
+        const graph = new joint.dia.Graph();
+        const size = { width: 100, height: 100 };
+        const a = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size });
+        const b = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 300 }, size });
+        const c = new joint.shapes.standard.Rectangle({ position: { x: 400, y: 150 }, size });
+        const j = new joint.shapes.standard.Circle({ position: { x: 603, y: 603 }, size: { width: 10, height: 10 }});
+        graph.resetCells([a, b, c, j,
+            new joint.shapes.standard.Link({ source: { id: a.id }, target: { id: j.id }}),
+            new joint.shapes.standard.Link({ source: { id: b.id }, target: { id: j.id }}),
+            new joint.shapes.standard.Link({ source: { id: j.id }, target: { id: c.id }})
+        ]);
+        // Snap the junction to a 7px grid, without the router's change flag.
+        j.on('change:position', (element, position, opt) => {
+            if (opt.snapped) return;
+            element.position(Math.round(position.x / 7) * 7 + 3, Math.round(position.y / 7) * 7 + 3, { snapped: true });
+        });
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, {
+            experimental_isJunction: ({ element }) => element === j
+        });
+
+        routerService.start();
+        assert.ok(true, 'no infinite loop');
+
+        routerService.destroy();
+    });
+});
+
+QUnit.module('experimental_checkpointsAttribute: fallback route', () => {
+
+    QUnit.test('the fallback route passes through the checkpoints', async assert => {
+        const graph = new joint.dia.Graph();
+        const a = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 50, height: 50 }});
+        const b = new joint.shapes.standard.Rectangle({ position: { x: 300, y: 0 }, size: { width: 50, height: 50 }});
+        // A closed ring of obstacles around `b`.
+        const wall = (x, y, width, height) => new joint.shapes.standard.Rectangle({ position: { x, y }, size: { width, height }});
+        const ring = [wall(240, -60, 170, 20), wall(240, 90, 170, 20), wall(240, -60, 20, 170), wall(390, -60, 20, 170)];
+        // Off the route the fallback takes without checkpoints.
+        const checkpoints = [{ x: 100, y: 200 }, { x: 200, y: 250 }];
+        const link = new joint.shapes.standard.Link({ source: { id: a.id }, target: { id: b.id }, checkpoints });
+        graph.resetCells([a, b, ...ring, link]);
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, { shapeBufferDistance: 5, experimental_checkpointsAttribute: 'checkpoints' });
+        const routed = [];
+        routerService.on('link:routed', (routedLink, options) => {
+            if (routedLink === link) routed.push(options.origin);
+        });
+        routerService.start();
+
+        assert.deepEqual(routed, ['fallback'], 'avoid found no route, so the fallback route is applied');
+        const route = new joint.g.Polyline([link.getSourcePoint(), ...link.vertices(), link.getTargetPoint()]);
+        checkpoints.forEach((checkpoint) => {
+            assert.ok(route.closestPoint(checkpoint).distance(checkpoint) < 0.5, `the route passes through ${checkpoint.x},${checkpoint.y}`);
+        });
+
+        routerService.destroy();
+    });
+
+    QUnit.test('a route that skips a checkpoint gets the fallback route', async assert => {
+        const graph = new joint.dia.Graph();
+        const a = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size: { width: 50, height: 50 }});
+        const b = new joint.shapes.standard.Rectangle({ position: { x: 400, y: 0 }, size: { width: 50, height: 50 }});
+        // Reaching the checkpoint from below needs a detour avoid does not
+        // find: it drops the checkpoint and still reports a valid route.
+        const checkpoints = [{ x: 225, y: 200, arrival: 'bottom' }];
+        const link = new joint.shapes.standard.Link({ source: { id: a.id }, target: { id: b.id }, checkpoints });
+        graph.resetCells([a, b, link]);
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, { experimental_checkpointsAttribute: 'checkpoints' });
+        const routed = [];
+        routerService.on('link:routed', (routedLink, options) => {
+            if (routedLink === link) routed.push(options.origin);
+        });
+        routerService.start();
+
+        assert.deepEqual(routed, ['fallback'], 'the fallback route is applied');
+        const route = new joint.g.Polyline([link.getSourcePoint(), ...link.vertices(), link.getTargetPoint()]);
+        checkpoints.forEach((checkpoint) => {
+            assert.ok(route.closestPoint(checkpoint).distance(checkpoint) < 0.5, `the route passes through ${checkpoint.x},${checkpoint.y}`);
+        });
+
+        routerService.destroy();
+    });
+});
+
+QUnit.module('experimental_checkpointsAttribute: directions', () => {
+
+    const checkpoint = { x: 250, y: 250 };
+
+    // The sides of the checkpoint the route comes from and leaves toward.
+    function getCheckpointSides(link) {
+        const view = link.findView(paper);
+        const points = [view.sourcePoint, ...link.vertices(), view.targetPoint].map((p) => new joint.g.Point(p));
+        const sideOf = (point) => {
+            if (point.x === checkpoint.x) return (point.y < checkpoint.y) ? 'top' : 'bottom';
+            return (point.x < checkpoint.x) ? 'left' : 'right';
+        };
+        for (let i = 1; i < points.length; i++) {
+            const segment = new joint.g.Line(points[i - 1], points[i]);
+            if (segment.pointOffset(checkpoint) !== 0 || segment.closestPoint(checkpoint).distance(checkpoint) > 0.5) continue;
+            const before = points[i - 1].equals(checkpoint) ? points[i - 2] : points[i - 1];
+            const after = points[i].equals(checkpoint) ? points[i + 1] : points[i];
+            return { arrival: sideOf(before), departure: sideOf(after) };
+        }
+        return null;
+    }
+
+    let paper;
+
+    async function route(checkpointAttributes) {
+        const graph = new joint.dia.Graph();
+        paper = new joint.dia.Paper({ model: graph, async: false });
+        const size = { width: 50, height: 50 };
+        const a = new joint.shapes.standard.Rectangle({ position: { x: 0, y: 0 }, size });
+        const b = new joint.shapes.standard.Rectangle({ position: { x: 450, y: 450 }, size });
+        const link = new joint.shapes.standard.Link({
+            source: { id: a.id },
+            target: { id: b.id },
+            checkpoints: [{ ...checkpoint, ...checkpointAttributes }]
+        });
+        graph.resetCells([a, b, link]);
+        const routerService = await joint.routers.avoid.initAvoidRouter(graph, { experimental_checkpointsAttribute: 'checkpoints' });
+        routerService.start();
+        return { routerService, link };
+    }
+
+    [
+        [{ arrival: 'left' }, 'arrival', 'left'],
+        [{ arrival: 'top' }, 'arrival', 'top'],
+        [{ arrival: 'bottom' }, 'arrival', 'bottom'],
+        [{ departure: 'right' }, 'departure', 'right'],
+        [{ departure: 'bottom' }, 'departure', 'bottom'],
+        [{ departure: 'top' }, 'departure', 'top'],
+    ].forEach(([attributes, kind, side]) => {
+        QUnit.test(`${kind}: '${side}'`, async assert => {
+            const { routerService, link } = await route(attributes);
+            const sides = getCheckpointSides(link);
+            assert.ok(sides, 'the route passes through the checkpoint');
+            assert.equal(sides && sides[kind], side, `the route ${kind === 'arrival' ? 'comes from' : 'leaves toward'} the ${side}`);
+            paper.remove();
+            routerService.destroy();
+        });
+    });
+});

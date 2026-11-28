@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Links joined at junctions, routed by libavoid with JointJS.">
+    <title>Libavoid junctions | JointJS</title>
+    <link rel="stylesheet" type="text/css" href="css/styles.css">
+</head>
+
+<body>
+    <div class="hint">
+        Links meet at junctions (the dots). The router places a free junction where the routes are shortest.
+        Drag a junction to pin it; double-click a pinned junction to free it again.
+        <label class="option">
+            Free junctions start from
+            <select id="junction-placement">
+                <option value="improve">their last position (improve)</option>
+                <option value="fresh">the median of their link ends (fresh)</option>
+            </select>
+        </label>
+    </div>
+    <div id="canvas" class="canvas"></div>
+    <script src="bundle.js"></script>
+</body>
+
+</html>

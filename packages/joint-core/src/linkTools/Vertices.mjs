@@ -2,6 +2,7 @@ import * as g from '../g/index.mjs';
 import * as util from '../util/index.mjs';
 import * as mvc from '../mvc/index.mjs';
 import { ToolView } from '../dia/ToolView.mjs';
+import { LinkView } from '../dia/LinkView.mjs';
 import V from '../V/index.mjs';
 
 
@@ -65,6 +66,8 @@ export const Vertices = ToolView.extend({
         snapRadius: 20,
         redundancyRemoval: true,
         vertexAdding: true,
+        // The link attribute holding the points the tool edits.
+        attribute: 'vertices',
         // vertexRemoving: true,
         // vertexMoving: true,
         stopPropagation: true,
@@ -124,9 +127,15 @@ export const Vertices = ToolView.extend({
         el.classList.remove('joint-vertices-path');
         this.interactiveLinkNode = null;
     },
+    getPoints: function() {
+        const points = this.relatedView.model.get(this.options.attribute);
+        return Array.isArray(points) ? points.slice() : [];
+    },
+    setPoints: function(points, opt) {
+        return this.relatedView.model.set(this.options.attribute, points, opt);
+    },
     update: function() {
-        var relatedView = this.relatedView;
-        var vertices = relatedView.model.vertices();
+        var vertices = this.getPoints();
         if (vertices.length === this.handles.length) {
             this.updateHandles();
         } else {
@@ -148,8 +157,7 @@ export const Vertices = ToolView.extend({
         }
     },
     renderHandles: function() {
-        var relatedView = this.relatedView;
-        var vertices = relatedView.model.vertices();
+        var vertices = this.getPoints();
         for (var i = 0, n = vertices.length; i < n; i++) {
             var vertex = vertices[i];
             var handle = new (this.options.handleClass)({
@@ -167,8 +175,7 @@ export const Vertices = ToolView.extend({
         }
     },
     updateHandles: function() {
-        var relatedView = this.relatedView;
-        var vertices = relatedView.model.vertices();
+        var vertices = this.getPoints();
         for (var i = 0, n = vertices.length; i < n; i++) {
             var vertex = vertices[i];
             var handle = this.handles[i];
@@ -194,7 +201,7 @@ export const Vertices = ToolView.extend({
     },
     getNeighborPoints: function(index) {
         var linkView = this.relatedView;
-        var vertices = linkView.model.vertices();
+        var vertices = this.getPoints();
         var prev = (index > 0) ? vertices[index - 1] : linkView.sourceAnchor;
         var next = (index < vertices.length - 1) ? vertices[index + 1] : linkView.targetAnchor;
         return {
@@ -214,7 +221,10 @@ export const Vertices = ToolView.extend({
         var [normalizedEvent, x, y] = linkView.paper.getPointerArgs(evt);
         var vertex = { x, y };
         this.snapVertex(vertex, index);
-        linkView.model.vertex(index, vertex, { ui: true, tool: this.cid });
+        const points = this.getPoints();
+        // Keep the point's other properties (e.g. checkpoint directions).
+        points[index] = { ...points[index], ...vertex };
+        this.setPoints(points, { ui: true, tool: this.cid });
         handle.position(vertex.x, vertex.y);
         if (!options.stopPropagation) linkView.notifyPointermove(normalizedEvent, x, y);
     },
@@ -222,8 +232,12 @@ export const Vertices = ToolView.extend({
         const { options, relatedView: linkView } = this;
         if (options.vertexAdding) this.updatePath();
         if (options.redundancyRemoval) {
-            const verticesRemoved = linkView.removeRedundantLinearVertices({ ui: true, tool: this.cid });
-            if (verticesRemoved) this.render();
+            const points = this.getPoints();
+            const filteredPoints = LinkView.filterRedundantVertices(linkView.sourceAnchor, points, linkView.targetAnchor);
+            if (filteredPoints.length < points.length) {
+                this.setPoints(filteredPoints, { ui: true, tool: this.cid });
+                this.render();
+            }
         }
         this.blur();
         linkView.model.stopBatch('vertex-move', { ui: true, tool: this.cid });
@@ -255,7 +269,11 @@ export const Vertices = ToolView.extend({
     onHandleRemove: function(handle, evt) {
         var index = handle.options.index;
         var linkView = this.relatedView;
-        linkView.model.removeVertex(index, { ui: true });
+        const points = this.getPoints();
+        points.splice(index, 1);
+        // No `tool` option: the tools view must update this tool,
+        // so that it re-renders its handles without the removed one.
+        this.setPoints(points, { ui: true });
         if (this.options.vertexAdding) this.updatePath();
         linkView.checkMouseleave(util.normalizeEvent(evt));
     },
@@ -267,9 +285,11 @@ export const Vertices = ToolView.extend({
         var vertex = this.paper.snapToGrid(normalizedEvent.clientX, normalizedEvent.clientY).toJSON();
         var relatedView = this.relatedView;
         relatedView.model.startBatch('vertex-add', { ui: true, tool: this.cid });
-        var index = relatedView.getVertexIndex(vertex.x, vertex.y);
+        const points = this.getPoints();
+        var index = relatedView.getVertexIndex(vertex.x, vertex.y, points);
         this.snapVertex(vertex, index);
-        relatedView.model.insertVertex(index, vertex, { ui: true, tool: this.cid });
+        points.splice(index, 0, vertex);
+        this.setPoints(points, { ui: true, tool: this.cid });
         this.update();
         var handle = this.handles[index];
         this.eventData(normalizedEvent, { vertexAdded: true });

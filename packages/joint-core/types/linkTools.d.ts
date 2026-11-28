@@ -32,6 +32,8 @@ export namespace Vertices {
         snapRadius?: number;
         redundancyRemoval?: boolean;
         vertexAdding?: boolean | Partial<VertexAddingOptions>;
+        /** POC: the link attribute holding the points the tool edits (default `vertices`). */
+        attribute?: string;
         vertexRemoving?: boolean;
         vertexMoving?: boolean;
         stopPropagation?: boolean;

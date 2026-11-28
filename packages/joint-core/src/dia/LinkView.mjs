@@ -451,27 +451,12 @@ export const LinkView = CellView.extend({
     // remove vertices that lie on (or nearly on) straight lines within the link
     // return the number of removed points
     removeRedundantLinearVertices: function(opt) {
-
-        const SIMPLIFY_THRESHOLD = 0.001;
-
         const link = this.model;
         const vertices = link.vertices();
-        const routePoints = [this.sourceAnchor, ...vertices, this.targetAnchor];
-        const numRoutePoints = routePoints.length;
-
-        // put routePoints into a polyline and try to simplify
-        const polyline = new Polyline(routePoints);
-        polyline.simplify({ threshold: SIMPLIFY_THRESHOLD });
-        const polylinePoints = polyline.points.map((point) => (point.toJSON())); // JSON of points after simplification
-        const numPolylinePoints = polylinePoints.length; // number of points after simplification
-
-        // shortcut if simplification did not remove any redundant vertices:
-        if (numRoutePoints === numPolylinePoints) return 0;
-
-        // else: set simplified polyline points as link vertices
-        // remove first and last polyline points again (= source/target anchors)
-        link.vertices(polylinePoints.slice(1, numPolylinePoints - 1), opt);
-        return (numRoutePoints - numPolylinePoints);
+        const filteredVertices = LinkView.filterRedundantVertices(this.sourceAnchor, vertices, this.targetAnchor);
+        const numRemoved = vertices.length - filteredVertices.length;
+        if (numRemoved > 0) link.vertices(filteredVertices, opt);
+        return numRemoved;
     },
 
     getEndView: function(type) {
@@ -1304,16 +1289,19 @@ export const LinkView = CellView.extend({
         return new Point(transformationMatrix.e, transformationMatrix.f);
     },
 
-    getVertexIndex: function(x, y) {
+    getVertexIndex: function(x, y, vertices) {
 
-        var model = this.model;
-        var vertices = model.vertices();
+        // accept input in form `{ x, y }, vertices` or `x, y, vertices`
+        const isPointProvided = (typeof x !== 'number');
+        const point = isPointProvided ? new Point(x) : new Point(x, y);
+        // POC: the points to insert among (e.g. checkpoints), `vertices` by default.
+        const points = (isPointProvided ? y : vertices) || this.model.vertices();
 
-        var vertexLength = this.getClosestPointLength(new Point(x, y));
+        var vertexLength = this.getClosestPointLength(point);
 
         var idx = 0;
-        for (var n = vertices.length; idx < n; idx++) {
-            var currentVertex = vertices[idx];
+        for (var n = points.length; idx < n; idx++) {
+            var currentVertex = points[idx];
             var currentVertexLength = this.getClosestPointLength(currentVertex);
             if (vertexLength < currentVertexLength) break;
         }
@@ -2042,6 +2030,24 @@ export const LinkView = CellView.extend({
 }, {
 
     Flags: Flags,
+
+    // Returns the vertices that are not redundant: removing a redundant vertex
+    // does not change the path from `start` through `vertices` to `end`
+    // (it lies on, or within `threshold` of, the segment between its neighbors).
+    filterRedundantVertices: function(start, vertices, end, opt = {}) {
+        const { threshold = 0.001 } = opt;
+        const polyline = new Polyline([start, ...vertices, end]).simplify({ threshold });
+        // `simplify()` keeps the first and last points (`start` and `end`)
+        // and the kept vertices in order: return the original objects.
+        const keptPoints = polyline.points.slice(1, -1);
+        let keptIndex = 0;
+        return vertices.filter((vertex) => {
+            const keptPoint = keptPoints[keptIndex];
+            if (!keptPoint || !keptPoint.equals(vertex)) return false;
+            keptIndex++;
+            return true;
+        });
+    }
 });
 
 Object.defineProperty(LinkView.prototype, 'sourceView', {

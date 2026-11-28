@@ -1,0 +1,11 @@
+{
+    "compilerOptions": {
+        "moduleResolution": "nodenext",
+        "module": "NodeNext",
+        "target": "es6",
+        "noImplicitAny": false,
+        "resolveJsonModule": true,
+        "sourceMap": false,
+        "outDir": "./build"
+    }
+}
